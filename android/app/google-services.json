@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "159806414965",
+    "project_id": "stylestacks-app",
+    "storage_bucket": "stylestacks-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:159806414965:android:38d9c9e0dba74b5721d83c",
+        "android_client_info": {
+          "package_name": "com.example.stylerstack"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "159806414965-9gitnptf9fscc5eued6dcchn1oco9qav.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.stylerstack",
+            "certificate_hash": "3e9e67222c10522c7c0c7f88df461d268ae3315d"
+          }
+        },
+        {
+          "client_id": "159806414965-voueldf9unrkhabn8pvktrfrb2b4r120.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXLDSIOR7HHkPozEm45R0CZfvFcwQ-YWg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "159806414965-306hqjmfpbdgmhd1pkn21kpp35hgf1cj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "159806414965-1d4jhd47p83veaeoid34ble1vo493o0n.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.stylerstack"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
