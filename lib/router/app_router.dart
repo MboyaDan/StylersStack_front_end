@@ -5,6 +5,10 @@ import 'package:stylerstack/views/auth/registration_screen.dart';
 import 'package:stylerstack/views/home/home_screen.dart';
 import 'package:stylerstack/views/home/splash_screen.dart';
 import 'package:stylerstack/providers/auth_provider.dart';
+import 'package:stylerstack/views/product/ProductListScreen.dart';
+
+import '../models/product_model.dart';
+import '../views/product/product_details.dart';
 
 GoRouter createRouter(AuthProvider authProvider) {
   return GoRouter(
@@ -51,6 +55,19 @@ GoRouter createRouter(AuthProvider authProvider) {
         pageBuilder: (context, state) =>
             _customPageTransition(const HomeScreen()),
       ),
+      GoRoute(
+        path: '/products',
+        builder: (context ,state)=>const ProductListScreen(),
+
+      ),
+      GoRoute(
+        path: '/product-details',
+        builder: (context, state) {
+          final product = state.extra as ProductModel;
+          return ProductDetailsPage(product: product);
+        },
+      ),
+
     ],
   );
 }

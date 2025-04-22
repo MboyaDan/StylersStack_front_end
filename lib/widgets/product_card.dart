@@ -10,7 +10,7 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Image.asset(product.imageUrl, height: 120),
+        Image.asset(product.images as String, height: 120),
         Text(product.name, style: TextStyle(fontWeight: FontWeight.bold)),
         Text("\$${product.price}"),
         Row(

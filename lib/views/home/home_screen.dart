@@ -14,7 +14,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     HomeMainScreen(),
     Center(child: Text('Shop')),
-    Center(child: Text('Stores')),
+    Center(child: Text('favorite')),
     Center(child: Text('Profile')),
   ];
 
@@ -31,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Shop'),
-          BottomNavigationBarItem(icon: Icon(Icons.store), label: 'Stores'),
+          BottomNavigationBarItem(icon: Icon(Icons.favorite), label: 'favorite'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:stylerstack/widgets/category_list_wiget.dart';
 import 'package:stylerstack/widgets/search_bar_widget.dart';
-
 import '../../widgets/flash_sale_grid_widget.dart';
 class  HomeMainScreen extends StatelessWidget{
   const HomeMainScreen({super.key});
@@ -44,14 +44,31 @@ class  HomeMainScreen extends StatelessWidget{
       ),
       SizedBox(height: 20),
 
-      Text(
-                'Categories',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A237E), // Deep Navy Blue
-                ),
-              ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('Categories',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF795548),
+            ),
+          ),
+          TextButton(
+              onPressed: () {
+                context.go('/products');
+                },
+            child: Text(
+            'See All',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF795548), // Deep Navy Blue
+            ),
+          ),
+          ),
+        ],
+      ),
               SizedBox(height: 10),
               CategoryListWidget(),
               SizedBox(height: 25),
@@ -60,7 +77,7 @@ class  HomeMainScreen extends StatelessWidget{
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A237E), // Deep Navy Blue
+                  color: Color(0xFF795548), // Deep Navy Blue
                 ),
               ),
               SizedBox(height: 10),
