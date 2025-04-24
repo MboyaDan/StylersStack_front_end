@@ -1,13 +1,20 @@
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
+import 'package:stylerstack/models/category_type.dart';
 import 'package:stylerstack/views/auth/login_screen.dart';
 import 'package:stylerstack/views/auth/registration_screen.dart';
+import 'package:stylerstack/views/category/Category_Product_Screen.dart';
 import 'package:stylerstack/views/home/home_screen.dart';
 import 'package:stylerstack/views/home/splash_screen.dart';
 import 'package:stylerstack/providers/auth_provider.dart';
 import 'package:stylerstack/views/product/ProductListScreen.dart';
 
 import '../models/product_model.dart';
+import '../views/cart/checkout_screen.dart';
+import '../views/cart/my_cart_screen.dart';
+import '../views/cart/payment_method.dart';
+import '../views/cart/payment_success_screen.dart';
+import '../views/cart/shipping_address.dart';
 import '../views/product/product_details.dart';
 
 GoRouter createRouter(AuthProvider authProvider) {
@@ -23,12 +30,12 @@ GoRouter createRouter(AuthProvider authProvider) {
       //  Wait for auth state to be determined before redirecting
       if (isLoading) return isSplash ? null : '/';
 
-      // 👇 Not logged in and not already on login/register
+      //  Not logged in and not already on login/register
       if (!isLoggedIn && !isOnLogin && !isOnRegister) {
         return '/login';
       }
 
-      // 👇 Already logged in but trying to access auth routes
+      //  Already logged in but trying to access auth routes
       if (isLoggedIn && (isOnLogin || isOnRegister || isSplash)) {
         return '/home';
       }
@@ -57,8 +64,7 @@ GoRouter createRouter(AuthProvider authProvider) {
       ),
       GoRoute(
         path: '/products',
-        builder: (context ,state)=>const ProductListScreen(),
-
+        builder: (context, state) => const ProductListScreen(),
       ),
       GoRoute(
         path: '/product-details',
@@ -68,6 +74,46 @@ GoRouter createRouter(AuthProvider authProvider) {
         },
       ),
 
+      //  Cart
+      GoRoute(
+        path: '/cart',
+        pageBuilder: (context, state) =>
+            _customPageTransition(const MyCartScreen()),
+      ),
+
+      //  Checkout
+      GoRoute(
+        path: '/checkout',
+        pageBuilder: (context, state) =>
+            _customPageTransition(const CheckoutScreen()),
+      ),
+
+      //  Shipping Address
+      GoRoute(
+        path: '/shipping-address',
+        pageBuilder: (context, state) =>
+            _customPageTransition(const ShippingAddressScreen()),
+      ),
+
+      // Payment Method
+      GoRoute(
+        path: '/payment-method',
+        pageBuilder: (context, state) =>
+            _customPageTransition(const PaymentMethodScreen()),
+      ),
+
+      //  Success
+      GoRoute(
+        path: '/payment-success',
+        pageBuilder: (context, state) =>
+            _customPageTransition(const PaymentSuccessScreen()),
+      ),
+      GoRoute(path: '/category-products',
+        builder: (context,state){
+        final category = state.extra as CategoryType;
+        return CategoryProductScreen(category: category);
+        },
+      ),
     ],
   );
 }

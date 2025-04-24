@@ -1,9 +1,10 @@
-class CartItem {
-  final String id;
-  final String title;
-  final String imageUrl;
-  final double price;
+import 'product_model.dart';
+
+class CartItemModel {
+  final ProductModel product;
   int quantity;
 
-  CartItem({required this.id, required this.title, required this.imageUrl, required this.price, this.quantity = 1});
+  CartItemModel({required this.product, this.quantity = 1});
+
+  double get totalPrice => product.price * quantity;
 }

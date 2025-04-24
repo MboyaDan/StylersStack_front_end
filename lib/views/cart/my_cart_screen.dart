@@ -1,0 +1,72 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/cart_provider.dart';
+import '../../widgets/cart_item_card.dart';
+
+class MyCartScreen extends StatelessWidget {
+  const MyCartScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final cartProvider = context.watch<CartProvider>();
+    final cartItems = cartProvider.items;
+
+    return Scaffold(
+      appBar: AppBar(title: Text("My Cart")),
+      body: cartItems.isEmpty
+          ? Center(child: Text("Your cart is empty."))
+          : ListView(
+        padding: const EdgeInsets.all(16),
+        children: cartItems.map((item) => CartItemCard(cartItem: item)).toList(),
+      ),
+      bottomNavigationBar: cartItems.isNotEmpty ? _checkoutBottomSheet(context, cartProvider) : null,
+    );
+  }
+
+  Widget _checkoutBottomSheet(BuildContext context, CartProvider provider) {
+    final TextEditingController promoController = TextEditingController();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
+        color: Color(0xFFF6F6F6),
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: promoController,
+            decoration: InputDecoration(
+              hintText: "Enter Promo Code",
+              suffixIcon: TextButton(
+                onPressed: () {
+                  provider.applyPromoCode(promoController.text);
+                  FocusScope.of(context).unfocus();
+                },
+                child: const Text("Apply"),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Total: \$${provider.totalPrice.toStringAsFixed(2)}",
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFDCC6B0),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                onPressed: () => Navigator.pushNamed(context, '/checkout'),
+                child: const Text("Checkout"),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
