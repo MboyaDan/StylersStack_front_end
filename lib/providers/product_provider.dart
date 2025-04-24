@@ -1,16 +1,17 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:stylerstack/services/product_service.dart';
 import '../models/category_type.dart';
 import '../models/product_model.dart';
-import '../services/api_service.dart';
+import '../services/cart_service.dart';
 
 class ProductProvider with ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  final ProductService _productService = ProductService();
 
   List<ProductModel> _products = [];
-  List<ProductModel> get products => _products;
-
   bool _isLoading = false;
+
+  List<ProductModel> get products => _products;
   bool get isLoading => _isLoading;
 
 
@@ -25,7 +26,8 @@ class ProductProvider with ChangeNotifier {
   void filterByCategory(CategoryType category) {
     _selectedCategory = category;
     _filteredProducts = _products
-        .where((product) => product.category.toLowerCase() == category.label.toLowerCase())
+        .where((product) =>
+    product.category.toLowerCase() == category.label.toLowerCase())
         .toList();
     notifyListeners();
   }
@@ -34,27 +36,19 @@ class ProductProvider with ChangeNotifier {
     _selectedCategory = null;
     notifyListeners();
   }
-  Future<void>fetchProductsDetails() async{
 
-  }
-
-
-  Future<void> fetchProducts() async {
+  Future<void> loadProducts()async {
     _isLoading = true;
     notifyListeners();
-
     try {
-      //calling the products end point
-      final res = await _apiService.getRequest('products');
-      if (res.statusCode == 200) {
-        List jsonData = jsonDecode(res.body);
-        _products = jsonData.map((e) => ProductModel.fromJson(e)).toList();
-      }
-    } catch (e) {
-      print("Failed to fetch products: $e");
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      _products = await _productService.fetchProducts();
+    }
+    catch (e) {
+      print (
+        'error in fetching: $e'
+      );
+    }
+    _isLoading = false;
+    notifyListeners();
     }
   }
-}

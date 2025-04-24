@@ -25,7 +25,7 @@ extension CategoryTypeExtension on CategoryType {
       case CategoryType.dress:
         return Icons.woman;
       case CategoryType.jacket:
-        return Icons.blinds;
+        return Icons.man;
     }
   }
 }

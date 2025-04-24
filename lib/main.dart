@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stylerstack/providers/auth_provider.dart';
+import 'package:stylerstack/providers/product_provider.dart';
 import 'package:stylerstack/providers/theme_provider.dart';
 import 'package:stylerstack/router/app_router.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +20,9 @@ class StyleStackApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create:(_)=> AuthProvider()),
-        ChangeNotifierProvider(create: (_)=>ThemeProvider())
+        ChangeNotifierProvider(create: (_)=>ThemeProvider()),
+        ChangeNotifierProvider(create: (_)=> ProductProvider())
+
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeController, child) {
