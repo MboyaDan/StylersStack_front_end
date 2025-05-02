@@ -1,32 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:stylerstack/providers/address_provider.dart';
 import '../../providers/cart_provider.dart';
 import 'package:stylerstack/widgets/order_summary_widget.dart';
+import '../../utils/constants.dart';
 
-class CheckoutScreen extends StatelessWidget {
+class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
 
   @override
+  _CheckoutScreenState createState() => _CheckoutScreenState();
+}
+
+class _CheckoutScreenState extends State<CheckoutScreen> {
+  @override
   Widget build(BuildContext context) {
     final cartProvider = context.watch<CartProvider>();
+    final currentAddress = context.watch<AddressProvider>().address;
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Checkout')),
-      backgroundColor: const Color(0xFFF6F6F6),
+      appBar: AppBar(title: const Text('Checkout Details')),
+      backgroundColor: AppColors.background,
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.padding),
         child: Column(
           children: [
             const OrderSummaryWidget(),
-
-            const SizedBox(height: 20),
+            const SizedBox(height:20),
 
             // Shipping address
             ListTile(
               title: const Text("Shipping Address"),
-              subtitle: Text(cartProvider.shippingAddress ?? "Not provided"),
+              subtitle: Text(currentAddress == null ? "Not provided"),
               trailing: TextButton(
                 onPressed: () => context.push('/shipping-address'),
                 child: const Text("Edit"),
@@ -45,17 +52,20 @@ class CheckoutScreen extends StatelessWidget {
 
             const Spacer(),
 
+            // Proceed to payment button
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFDCC6B0),
+                backgroundColor: AppColors.primary, // Using constants
                 minimumSize: const Size.fromHeight(50),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
+                ),
               ),
               onPressed: () {
-                if (cartProvider.shippingAddress == null || cartProvider.paymentMethod == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text("Please complete shipping and payment information."),
-                  ));
+                if (currentAddress == null || cartProvider.paymentMethod == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Please complete shipping and payment information.")),
+                  );
                 } else {
                   context.push('/payment-success');
                 }

@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:stylerstack/models/category_type.dart';
 import 'package:stylerstack/views/auth/login_screen.dart';
 import 'package:stylerstack/views/auth/registration_screen.dart';
-import 'package:stylerstack/views/category/Category_Product_Screen.dart';
+import 'package:stylerstack/views/category/category_product_Screen.dart';
 import 'package:stylerstack/views/home/home_screen.dart';
 import 'package:stylerstack/views/home/splash_screen.dart';
 import 'package:stylerstack/providers/auth_provider.dart';

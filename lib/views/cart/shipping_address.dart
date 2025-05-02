@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/cart_provider.dart';
-
+import 'package:stylerstack/providers/address_provider.dart';
 class ShippingAddressScreen extends StatefulWidget {
   const ShippingAddressScreen({super.key});
 
@@ -11,24 +10,47 @@ class ShippingAddressScreen extends StatefulWidget {
 
 class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _addressController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  bool _isLoading = false;
+  //fetch the address when the screen loads
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if  (mounted ) {
+      context.read<AddressProvider>().fetchAddress();
+      }
+    });
+  }
+  //manage memory leaks
   @override
   void dispose() {
     _addressController.dispose();
     super.dispose();
   }
 
-  void _saveAddress(BuildContext context) {
+  Future<void> _saveAddress() async {
     if (_formKey.currentState!.validate()) {
-      Provider.of<CartProvider>(context, listen: false).setShippingAddress(_addressController.text);
+      setState(() => _isLoading = true);
+
+      // Access provider BEFORE the async gap
+      final addressProvider = context.read<AddressProvider>();
+
+      await addressProvider.editAddress(_addressController.text);
+
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
       Navigator.pop(context);
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final addressProvider = context.watch<AddressProvider>();
+    final currentAddress = addressProvider.address?.address??'No address saved yet';
 
     return Scaffold(
       appBar: AppBar(title: const Text("Shipping Address")),
@@ -39,6 +61,14 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
           key: _formKey,
           child: Column(
             children: [
+              const Text(
+              "Current Address:",
+              style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
+          ),
+              Text(
+                currentAddress,
+              style: const TextStyle(fontSize: 16,color:Colors.black54),),
+              const SizedBox(height: 20),
               TextFormField(
                 controller: _addressController,
                 decoration: const InputDecoration(
@@ -49,8 +79,10 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
                 value == null || value.isEmpty ? "Please enter your address" : null,
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => _saveAddress(context),
+              _isLoading
+              ?const CircularProgressIndicator()
+              :ElevatedButton(
+                onPressed: () => _saveAddress,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFDCC6B0),
                   minimumSize: const Size.fromHeight(50),

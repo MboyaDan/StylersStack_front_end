@@ -33,17 +33,18 @@ class ProductModel {
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     return ProductModel(
-      description: json['description'],
-      colors: json['color'],
       id: json['id'].toString(),
       name: json['name'],
-      images: json['image_url'],
+      images: List<String>.from(json['image_url']),
       price: (json['price'] ?? 0).toDouble(),
       category: json['category'] ?? '',
       stock: json['stock'] ?? 0,
-      rating: json['rating'],
+      rating: json['rating'] ?? 0,
       discount: (json['discount'] ?? 0).toDouble(),
-      sizes: json['size']
+      sizes: List<String>.from(json['size']),
+      colors: List<int>.from(json['color']).map((c) => Color(c)).toList(),
+      description: json['description'] ?? '',
     );
   }
+
 }

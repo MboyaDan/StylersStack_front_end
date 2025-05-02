@@ -1,24 +1,139 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:rxdart/rxdart.dart';
+import '../providers/product_provider.dart';
+import '../models/category_type.dart';
 
-class SearchBarWidget extends StatelessWidget {
-  const SearchBarWidget({super.key});
+class SearchBarWidget extends StatefulWidget {
+  final CategoryType? initialCategory;
+
+  const SearchBarWidget({super.key, this.initialCategory});
+
+  @override
+  State<SearchBarWidget> createState() => _SearchBarWidgetState();
+}
+
+class _SearchBarWidgetState extends State<SearchBarWidget> {
+  final TextEditingController _controller = TextEditingController();
+  final BehaviorSubject<String> _searchSubject = BehaviorSubject.seeded('');
+  final BehaviorSubject<CategoryType?> _categorySubject = BehaviorSubject<CategoryType?>();
+
+  late final Stream<List<String>> _suggestionsStream;
+  late final ProductProvider productProvider;
+
+  @override
+  void initState() {
+    super.initState();
+
+    productProvider = context.read<ProductProvider>();
+    final initialCat = widget.initialCategory ?? productProvider.selectedCategory;
+    _categorySubject.add(initialCat);
+
+    _suggestionsStream = Rx.combineLatest2<String, CategoryType?, void>(
+      _searchSubject.debounceTime(const Duration(milliseconds: 400)).distinct(),
+      _categorySubject.distinct(),
+          (query, category) {
+        productProvider.searchWithCategory(query: query, category: category);
+      },
+    ).switchMap((_) {
+      return productProvider.searchedProductsStream.map((products) {
+        return products.map((p) => p.name).toSet().take(5).toList();
+      });
+    });
+
+    // Sync initial text
+    _controller.addListener(() {
+      final text = _controller.text.trim();
+      if (_searchSubject.value != text) {
+        _searchSubject.add(text);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _searchSubject.close();
+    _categorySubject.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
-      ),
-      child: TextField(
-        decoration: InputDecoration(
-          icon: Icon(Icons.search),
-          hintText: 'Search...',
-          border: InputBorder.none,
+    final categoryOptions = CategoryType.values;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.search, color: Colors.grey),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  hintText: 'Search products...',
+                  suffixIcon: _controller.text.isNotEmpty
+                      ? IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      _controller.clear();
+                      _searchSubject.add('');
+                    },
+                  )
+                      : null,
+                ),
+              ),
+            ),
+          ],
         ),
-      ),
+        const SizedBox(height: 10),
+        DropdownButton<CategoryType?>(
+          value: _categorySubject.valueOrNull,
+          hint: const Text("Select Category"),
+          isExpanded: true,
+          items: [
+            const DropdownMenuItem<CategoryType?>(
+              value: null,
+              child: Text("All Categories"),
+            ),
+            ...categoryOptions.map((cat) => DropdownMenuItem<CategoryType>(
+              value: cat,
+              child: Text(cat.label),
+            )),
+          ],
+          onChanged: (selected) {
+            _categorySubject.add(selected);
+          },
+        ),
+        StreamBuilder<List<String>>(
+          stream: _suggestionsStream,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const SizedBox.shrink();
+            }
+
+            final suggestions = snapshot.data!;
+            return ListView.builder(
+              shrinkWrap: true,
+              itemCount: suggestions.length,
+              itemBuilder: (context, index) {
+                final suggestion = suggestions[index];
+                return ListTile(
+                  title: Text(suggestion),
+                  onTap: () {
+                    _controller.text = suggestion;
+                    _searchSubject.add(suggestion);
+                  },
+                );
+              },
+            );
+          },
+        ),
+      ],
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stylerstack/providers/address_provider.dart';
 import 'package:stylerstack/providers/auth_provider.dart';
 import 'package:stylerstack/providers/product_provider.dart';
 import 'package:stylerstack/providers/theme_provider.dart';
@@ -21,13 +22,15 @@ class StyleStackApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create:(_)=> AuthProvider()),
         ChangeNotifierProvider(create: (_)=>ThemeProvider()),
-        ChangeNotifierProvider(create: (_)=> ProductProvider())
+        ChangeNotifierProvider(create: (_)=> ProductProvider()),
+        ChangeNotifierProvider(create: (_)=>AddressProvider()),
+
 
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeController, child) {
           ///creating GoRouter instance
-          final router = createRouter(Provider.of<AuthProvider>(context));
+          final router = createRouter(context.read<AuthProvider>());
           return MaterialApp.router(
             routerConfig: router,
             debugShowCheckedModeBanner: false,

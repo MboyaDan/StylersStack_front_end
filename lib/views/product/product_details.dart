@@ -6,7 +6,7 @@ import '../../providers/cart_provider.dart';
 class ProductDetailsPage extends StatefulWidget {
   final ProductModel product;
 
-  const ProductDetailsPage({required this.product, Key? key}) : super(key: key);
+  const ProductDetailsPage({required this.product, super.key});
 
   @override
   State<ProductDetailsPage> createState() => _ProductDetailsPageState();
@@ -40,7 +40,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      Provider.of<CartProvider>(context, listen: false).addToCart(product);
+                      context.read<CartProvider>().addToCart();
                       Navigator.pop(context);
                     },
                     child: Text("Yes, Add"),

@@ -8,7 +8,7 @@ class OrderSummaryWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cartProvider = context.watch<CartProvider>();
-    final total = cartProvider.totalPrice;
+    final total = cartProvider.totalCartPrice;
 
     return Container(
       padding: const EdgeInsets.all(16),

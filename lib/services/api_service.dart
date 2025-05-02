@@ -52,7 +52,6 @@ class ApiService {
         });
   }
 ///delete request
-// Add PUT, DELETE similarly as needed
 
 Future<http.Response> deleteRequest(String endpoint, Map<String,dynamic> data)async{
     final token = await _getToken();
@@ -62,6 +61,18 @@ Future<http.Response> deleteRequest(String endpoint, Map<String,dynamic> data)as
       headers: {
       'Authorization':'Bearer $token',
         'Content-Type': 'application/json',
+      });
+}
+///update request
+Future<http.Response> putRequest(String endpoint, Map<String, dynamic> data)async {
+    final token = await _getToken();
+    final uri = Uri.parse('$baseUrl/$endpoint');
+    return http.put(uri,
+      body: jsonEncode(data),
+      headers: {
+      'Authorization':'Bearer $token',
+        'Content-Type': 'application/json',
+
       });
 }
   //force refresh token if needed
