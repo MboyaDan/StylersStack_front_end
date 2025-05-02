@@ -50,7 +50,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
       }
     });
   }
-
+//to avoid memory leaks we need to close the streams
   @override
   void dispose() {
     _controller.dispose();
