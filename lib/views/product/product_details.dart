@@ -40,7 +40,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      context.read<CartProvider>().addToCart();
+                      context.read<CartProvider>().updateCartItem();
                       Navigator.pop(context);
                     },
                     child: Text("Yes, Add"),
@@ -65,9 +65,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     return Scaffold(
       appBar: AppBar(title: const Text("Product Details")),
       body: SingleChildScrollView(
-        child: Padding(
+        child: ListView(
           padding: const EdgeInsets.all(16),
-          child: Column(
             children: [
               // Product Images
               SizedBox(
@@ -150,7 +149,6 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 }

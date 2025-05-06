@@ -9,7 +9,7 @@ class MyCartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cartProvider = context.watch<CartProvider>();
-    final cartItems = cartProvider.items;
+    final cartItems = cartProvider.cartItems;
 
     return Scaffold(
       appBar: AppBar(title: Text("My Cart")),
@@ -53,7 +53,7 @@ class MyCartScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Total: \$${provider.totalPrice.toStringAsFixed(2)}",
+              Text("Total: \$${provider.totalCartPrice.toStringAsFixed(2)}",
                   style: const TextStyle(fontWeight: FontWeight.bold)),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(

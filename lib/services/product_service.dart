@@ -1,22 +1,31 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'api_service.dart';
-import '../models/product_model.dart'; // your product model
+import '../models/product_model.dart';
 
 class ProductService {
   final ApiService _apiService = ApiService();
 
-  Future<void>fetchProductsDetails() async{
-
-  }
+  /// Fetch all products
   Future<List<ProductModel>> fetchProducts() async {
-    final response = await _apiService.getRequest('products');
+    try {
+      final Response response = await _apiService.getRequest('products');
+      final List<dynamic> data = response.data;
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
       return data.map((item) => ProductModel.fromJson(item)).toList();
-    } else {
-      throw Exception('Failed to load products');
+    } on DioException catch (e) {
+      throw Exception('Failed to load products: ${e.message}');
+    }
+  }
+
+  /// Fetch single product details by ID
+  Future<ProductModel> fetchProductDetails(String productId) async {
+    try {
+      final Response response = await _apiService.getRequest('products/$productId');
+      final data = response.data;
+
+      return ProductModel.fromJson(data);
+    } on DioException catch (e) {
+      throw Exception('Failed to load product details: ${e.message}');
     }
   }
 }

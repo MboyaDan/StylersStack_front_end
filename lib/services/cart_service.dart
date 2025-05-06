@@ -1,20 +1,21 @@
-import 'dart:convert';
 import '../models/cart_item.dart';
 import 'api_service.dart';
+import 'package:dio/dio.dart';
 
 class CartService {
   final ApiService _apiService = ApiService();
 
   /// Fetch cart items from API
   Future<List<CartItemModel>> fetchCartItems({required String userId}) async {
-    final response = await _apiService.getRequest('cart');
+    try {
+      final Response response = await _apiService.getRequest('cart');
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
+      // Dio decodes JSON automatically into a List/Map
+      final List<dynamic> data = response.data;
 
       return data.map((item) => CartItemModel.fromJson(item, userId: userId)).toList();
-    } else {
-      throw Exception('Failed to load cart items');
+    } on DioException catch (e) {
+      throw Exception('Failed to load cart items: ${e.message}');
     }
   }
 
@@ -23,13 +24,17 @@ class CartService {
     required String productId,
     int quantity = 1,
   }) async {
-    final response = await _apiService.postRequest('cart', {
-      'product_id': productId,
-      'quantity': quantity,
-    });
+    try {
+      final Response response = await _apiService.postRequest('cart', {
+        'product_id': productId,
+        'quantity': quantity,
+      });
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to add item to cart');
+      if (response.statusCode != 200) {
+        throw Exception('Failed to add item to cart: ${response.statusMessage}');
+      }
+    } on DioException catch (e) {
+      throw Exception('Failed to add item to cart: ${e.message}');
     }
   }
 
@@ -37,12 +42,16 @@ class CartService {
   Future<void> removeItemFromCart({
     required String productId,
   }) async {
-    final response = await _apiService.deleteRequest('cart', {
-      'product_id': productId,
-    });
+    try {
+      final Response response = await _apiService.deleteRequest('cart', data: {
+        'product_id': productId,
+      });
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to remove item from cart');
+      if (response.statusCode != 200) {
+        throw Exception('Failed to remove item from cart: ${response.statusMessage}');
+      }
+    } on DioException catch (e) {
+      throw Exception('Failed to remove item from cart: ${e.message}');
     }
   }
 
@@ -51,13 +60,17 @@ class CartService {
     required String productId,
     required int quantity,
   }) async {
-    final response = await _apiService.putRequest('cart', {
-      'product_id': productId,
-      'quantity': quantity,
-    });
+    try {
+      final Response response = await _apiService.putRequest('cart', {
+        'product_id': productId,
+        'quantity': quantity,
+      });
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to update cart item');
+      if (response.statusCode != 200) {
+        throw Exception('Failed to update cart item: ${response.statusMessage}');
+      }
+    } on DioException catch (e) {
+      throw Exception('Failed to update cart item: ${e.message}');
     }
   }
 }

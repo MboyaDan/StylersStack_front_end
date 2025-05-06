@@ -10,10 +10,16 @@ class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
 
   @override
-  _CheckoutScreenState createState() => _CheckoutScreenState();
+  CheckoutScreenState createState() => CheckoutScreenState();
 }
 
-class _CheckoutScreenState extends State<CheckoutScreen> {
+class CheckoutScreenState extends State<CheckoutScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<CartProvider>().clearCart();
+  }
+
   @override
   Widget build(BuildContext context) {
     final cartProvider = context.watch<CartProvider>();
@@ -28,12 +34,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: Column(
           children: [
             const OrderSummaryWidget(),
-            const SizedBox(height:20),
+            const SizedBox(height: 20),
 
             // Shipping address
             ListTile(
               title: const Text("Shipping Address"),
-              subtitle: Text(currentAddress == null ? "Not provided"),
+              subtitle: Text(currentAddress == null ? "Not provided" : currentAddress),
               trailing: TextButton(
                 onPressed: () => context.push('/shipping-address'),
                 child: const Text("Edit"),
@@ -55,7 +61,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             // Proceed to payment button
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary, // Using constants
+                backgroundColor: AppColors.primary,
                 minimumSize: const Size.fromHeight(50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
@@ -78,3 +84,4 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 }
+

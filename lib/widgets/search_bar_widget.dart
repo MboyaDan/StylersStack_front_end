@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import '../providers/product_provider.dart';
 import '../models/category_type.dart';
+import '../services/connectivity_service.dart';
 
 class SearchBarWidget extends StatefulWidget {
   final CategoryType? initialCategory;
@@ -18,9 +19,11 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   final TextEditingController _controller = TextEditingController();
   final BehaviorSubject<String> _searchSubject = BehaviorSubject.seeded('');
   final BehaviorSubject<CategoryType?> _categorySubject = BehaviorSubject<CategoryType?>();
-
   late final Stream<List<String>> _suggestionsStream;
   late final ProductProvider productProvider;
+
+  StreamSubscription<bool>? _internetSub;
+  bool? _lastInternetStatus;
 
   @override
   void initState() {
@@ -42,26 +45,50 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
       });
     });
 
-    // Sync initial text
     _controller.addListener(() {
       final text = _controller.text.trim();
       if (_searchSubject.value != text) {
         _searchSubject.add(text);
       }
     });
+
+    //  Listen to internet status and show SnackBar
+    final connectivityService = context.read<ConnectivityService>();
+    _internetSub = connectivityService.internetStatusStream.listen((hasInternet) {
+      if (_lastInternetStatus != hasInternet) {
+        final message = hasInternet
+            ? 'Internet connected'
+            : 'Internet lost. Some features may not work.';
+        final color = hasInternet ? Colors.green : Colors.red;
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: color,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+
+        _lastInternetStatus = hasInternet;
+      }
+    });
   }
-//to avoid memory leaks we need to close the streams
+
   @override
   void dispose() {
     _controller.dispose();
     _searchSubject.close();
     _categorySubject.close();
+    _internetSub?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final categoryOptions = CategoryType.values;
+    final connectivityService = context.watch<ConnectivityService>();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,24 +136,42 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
             _categorySubject.add(selected);
           },
         ),
-        StreamBuilder<List<String>>(
-          stream: _suggestionsStream,
+        const SizedBox(height: 10),
+        // Listen to internet stream and only show suggestions if connected
+        StreamBuilder<bool>(
+          stream: connectivityService.internetStatusStream,
           builder: (context, snapshot) {
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const SizedBox.shrink();
+            final hasInternet = snapshot.data ?? false;
+            if (!hasInternet) {
+              return const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'No internet connection. Try again later.',
+                  style: TextStyle(color: Colors.red),
+                ),
+              );
             }
+//show suggestions if connected this is our subscriber
+            return StreamBuilder<List<String>>(
+              stream: _suggestionsStream,
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const SizedBox.shrink();
+                }
 
-            final suggestions = snapshot.data!;
-            return ListView.builder(
-              shrinkWrap: true,
-              itemCount: suggestions.length,
-              itemBuilder: (context, index) {
-                final suggestion = suggestions[index];
-                return ListTile(
-                  title: Text(suggestion),
-                  onTap: () {
-                    _controller.text = suggestion;
-                    _searchSubject.add(suggestion);
+                final suggestions = snapshot.data!;
+                return ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: suggestions.length,
+                  itemBuilder: (context, index) {
+                    final suggestion = suggestions[index];
+                    return ListTile(
+                      title: Text(suggestion),
+                      onTap: () {
+                        _controller.text = suggestion;
+                        _searchSubject.add(suggestion);
+                      },
+                    );
                   },
                 );
               },

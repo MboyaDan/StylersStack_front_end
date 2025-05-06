@@ -1,32 +1,46 @@
-import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:stylerstack/services/api_service.dart';
 import '../models/model_address.dart';
 
 class AddressService {
   final ApiService _apiService = ApiService();
 
-  Future <AddressModel> fetchAddress() async {
-    final response = await _apiService.getRequest('address');
+  /// Fetch the current user's address
+  Future<AddressModel> fetchAddress() async {
+    try {
+      final Response response = await _apiService.getRequest('address');
 
-    if (response.statusCode == 200) {
-      return AddressModel.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to load address');
+      return AddressModel.fromJson(response.data);
+    } on DioException catch (e) {
+      throw Exception('Failed to load address: ${e.message}');
     }
   }
 
-  Future <bool> saveAddress(AddressModel addressModel)async {
-    final response = await _apiService.postRequest('address',
-    addressModel.toJson(),
-    );//sending data
-    return response.statusCode==200|| response.statusCode == 201;
+  /// Save a new address
+  Future<bool> saveAddress(AddressModel addressModel) async {
+    try {
+      final Response response = await _apiService.postRequest(
+        'address',
+        addressModel.toJson(),
+      );
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } on DioException catch (e) {
+      throw Exception('Failed to save address: ${e.message}');
+    }
   }
-  Future<bool> updateAddress(AddressModel addressModel)async{
-    final response = await _apiService.putRequest(
-      'address',//to be considered if backend uses '/address/:id' ,pass ID '
-      // 'address/${addressModel.id}'
-      addressModel.toJson(),
-    );
-    return response.statusCode==200;
+
+  /// Update an existing address
+  Future<bool> updateAddress(AddressModel addressModel) async {
+    try {
+      final Response response = await _apiService.putRequest(
+        'address', // If your backend uses `/address/:id`, change to 'address/${addressModel.id}'
+        addressModel.toJson(),
+      );
+
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      throw Exception('Failed to update address: ${e.message}');
+    }
   }
 }

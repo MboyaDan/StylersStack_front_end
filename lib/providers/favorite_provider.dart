@@ -38,7 +38,7 @@ class FavoriteProvider with ChangeNotifier {
 
     try {
       // Add favorite to Isar
-      await _isarService.addFavorite(favoriteItem);
+      await _isarService.fetchFavorites(_userId!);
       _favorites.add(favoriteItem); // Add to in-memory list
       notifyListeners(); // Notify UI updates
     } catch (e) {

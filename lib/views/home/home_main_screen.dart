@@ -17,6 +17,15 @@ class  HomeMainScreen extends StatelessWidget{
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                crossAxisAlignment:CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.location_on),
+                  Spacer(),
+                  Text('New York USA',
+                  ),
+                ],
+              ),
               SizedBox(height: 10),
               SearchBarWidget(),
               SizedBox(height: 25),
