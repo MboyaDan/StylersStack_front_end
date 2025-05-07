@@ -3,7 +3,8 @@ import 'package:stylerstack/services/api_service.dart';
 import '../models/favorite_item.dart';
 
 class FavoriteService {
-  final ApiService _apiService = ApiService();
+  final ApiService _apiService;
+  FavoriteService(this._apiService);
 
   /// Fetch all favorite items for the current user from the API
   Future<List<FavoriteItem>> fetchFavorites(String userId) async {

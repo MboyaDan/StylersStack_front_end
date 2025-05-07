@@ -3,7 +3,9 @@ import 'package:stylerstack/services/api_service.dart';
 import '../models/model_address.dart';
 
 class AddressService {
-  final ApiService _apiService = ApiService();
+  final ApiService _apiService;
+  AddressService(this._apiService);
+
 
   /// Fetch the current user's address
   Future<AddressModel> fetchAddress() async {

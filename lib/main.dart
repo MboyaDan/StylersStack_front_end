@@ -7,10 +7,12 @@ import 'package:stylerstack/providers/product_provider.dart';
 import 'package:stylerstack/providers/theme_provider.dart';
 import 'package:stylerstack/providers/payment_provider.dart';
 import 'package:stylerstack/services/connectivity_service.dart';
+import 'package:stylerstack/services/api_service.dart';
 import 'package:stylerstack/router/app_router.dart';
+import 'package:stylerstack/widgets/connectivity_banner.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:stylerstack/widgets/connectivity_banner.dart';
+import 'package:go_router/go_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,39 +27,70 @@ class StyleStackApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider<AuthProvider>(
+          create: (_) => AuthProvider(),
+        ),
+
+        ProxyProvider<AuthProvider, GoRouter>(
+          update: (_, authProvider, __) => createRouter(authProvider),
+        ),
+
+        ProxyProvider2<AuthProvider, GoRouter, ApiService>(
+          update: (_, authProvider, router, __) => ApiService(authProvider, router),
+        ),
+
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => ProductProvider()),
-        ChangeNotifierProvider(create: (_) => AddressProvider()),
-        ChangeNotifierProvider(create: (_) => CartProvider()),
+
+        ProxyProvider<ApiService, ProductProvider>(
+          update: (_, apiService, __) => ProductProvider(apiService),
+        ),
+
         ChangeNotifierProvider(create: (_) => FavoriteProvider()),
-        ChangeNotifierProvider(create: (_) => PaymentProvider()),
+
+        ProxyProvider<ApiService, PaymentProvider>(
+          update: (_, apiService, __) => PaymentProvider(apiService),
+        ),
+
+        ProxyProvider<ApiService, CartProvider>(
+          update: (_, apiService, __) => CartProvider(apiService),
+        ),
+
+        ProxyProvider<ApiService, AddressProvider>(
+          update: (_, apiService, __) => AddressProvider(apiService),
+        ),
+
         Provider<ConnectivityService>(
           create: (_) => ConnectivityService(),
           dispose: (_, service) => service.dispose(),
         ),
       ],
-      child: Consumer2<ThemeProvider, ConnectivityService>(
-        builder: (context, themeController, connectivityService, child) {
-          final router = createRouter(context.read<AuthProvider>());
+      child: Consumer2<AuthProvider, GoRouter>(
+        builder: (context, authProvider, router, _) {
+          return Consumer<ConnectivityService>(
+            builder: (context, connectivityService, _) {
+              return StreamBuilder<bool>(
+                stream: connectivityService.internetStatusStream,
+                builder: (context, snapshot) {
+                  final hasInternet = snapshot.data ?? true;
 
-          return StreamBuilder<bool>(
-            stream: connectivityService.internetStatusStream,
-            builder: (context, snapshot) {
-              final hasInternet = snapshot.data ?? true;
+                  return MaterialApp.router(
+                    routerConfig: router,
+                    debugShowCheckedModeBanner: false,
+                    themeMode: context.watch<ThemeProvider>().isDarkMode
+                        ? ThemeMode.dark
+                        : ThemeMode.light,
+                    darkTheme: ThemeData.dark(),
+                    theme: ThemeData.light(),
+                    builder: (context, child) {
+                      _listenForLogout(context, authProvider);
 
-              return MaterialApp.router(
-                routerConfig: router,
-                debugShowCheckedModeBanner: false,
-                themeMode: themeController.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-                darkTheme: ThemeData.dark(),
-                theme: ThemeData.light(),
-                builder: (context, child) {
-                  return Stack(
-                    children: [
-                      child!,
-                      ConnectivityBanner(hasInternet: hasInternet), // reusable banner
-                    ],
+                      return Stack(
+                        children: [
+                          child!,
+                          ConnectivityBanner(hasInternet: hasInternet),
+                        ],
+                      );
+                    },
                   );
                 },
               );
@@ -66,5 +99,18 @@ class StyleStackApp extends StatelessWidget {
         },
       ),
     );
+  }
+
+  void _listenForLogout(BuildContext context, AuthProvider authProvider) {
+    authProvider.addListener(() {
+      if (authProvider.isLoggedOut) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('You have been logged out.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    });
   }
 }

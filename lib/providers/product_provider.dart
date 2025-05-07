@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:stylerstack/services/api_service.dart';
 import 'package:stylerstack/services/product_service.dart';
 import '../models/category_type.dart';
 import '../models/product_model.dart';
 
 //combining provider with rxdart for searching and filtering products
 class ProductProvider with ChangeNotifier {
-  final ProductService _productService = ProductService();
+  final ProductService _productService;
+  ProductProvider(ApiService apiService) : _productService = ProductService(apiService);
 
   List<ProductModel> _products = [];
   List<ProductModel> _filteredProducts = [];

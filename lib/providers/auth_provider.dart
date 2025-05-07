@@ -1,36 +1,64 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../models/user_model.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../models/user_model.dart';
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   UserModel? _user;
   bool _isLoading = true;
+  bool _isLoggedOut = false;
 
   AuthProvider() {
-    // Listen for authentication state changes
-    _auth.authStateChanges().listen((User? user) {
-      _setUser(user);
-    });
+    _auth.authStateChanges().listen(_setUser);
   }
 
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
+  bool get isLoggedOut => _isLoggedOut;
+  String get userId => _user?.uid ?? (throw Exception("User not logged in"));
 
-  String get userId {
-    if (_user == null) throw Exception("User not logged in");
-    return _user!.uid;
-  }
+  void _setUser(User? firebaseUser) async {
+    if (firebaseUser != null) {
+      _user = UserModel(uid: firebaseUser.uid, email: firebaseUser.email ?? '');
+      final token = await refreshToken();
+      if (token != null) {
+        await _storage.write(key: 'id_token', value: token);
+      }
+    } else {
+      _user = null;
+    }
 
-  void _setUser(User? user) {
-    _user = user != null ? UserModel(uid: user.uid, email: user.email ?? '') : null;
-    _isLoading = false; // Set loading to false once we get the auth state
+    _isLoggedOut = _user == null;
+    _isLoading = false;
     notifyListeners();
   }
 
+  /// Get valid token (cached or refreshed)
+  Future<String?> getValidToken() async {
+    String? token = await _storage.read(key: 'id_token');
+    if (token == null || JwtDecoder.isExpired(token)) {
+      print('No token or expired. Refreshing token...');
+      token = await refreshToken();
+      if (token != null) {
+        await _storage.write(key: 'id_token', value: token);
+      }
+    }
+    return token;
+  }
+
+  /// Force refresh token from Firebase
+  Future<String?> refreshToken() async {
+    final firebaseUser = _auth.currentUser;
+    return await firebaseUser?.getIdToken(true);
+  }
+
+  /// Friendly error messages
   String _getFriendlyErrorMessage(String code) {
     switch (code) {
       case "invalid-credential":
@@ -50,7 +78,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Sign Up with Email & Password
+  /// Sign up with email & password
   Future<String?> signUp(String email, String password) async {
     try {
       _isLoading = true;
@@ -60,6 +88,7 @@ class AuthProvider extends ChangeNotifier {
         email: email,
         password: password,
       );
+
       _setUser(credential.user);
       return null;
     } on FirebaseAuthException catch (e) {
@@ -73,7 +102,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Sign In with Email & Password
+  /// Sign in with email & password
   Future<String?> signIn(String email, String password) async {
     try {
       _isLoading = true;
@@ -83,6 +112,7 @@ class AuthProvider extends ChangeNotifier {
         email: email,
         password: password,
       );
+
       _setUser(credential.user);
       return null;
     } on FirebaseAuthException catch (e) {
@@ -96,7 +126,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Google Sign-In
+  /// Google Sign-In
   Future<String?> signInWithGoogle() async {
     try {
       _isLoading = true;
@@ -129,13 +159,14 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Sign Out
+  /// Sign out and clear token
   Future<void> signOut() async {
     _isLoading = true;
     notifyListeners();
 
     await _auth.signOut();
     await _googleSignIn.signOut();
+    await _storage.delete(key: 'id_token');
 
     _setUser(null);
   }

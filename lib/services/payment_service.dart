@@ -3,7 +3,8 @@ import '../models/payment_model.dart';
 import '../services/api_service.dart';
 
 class PaymentService {
-  final ApiService _apiService = ApiService();
+  final ApiService _apiService;
+  PaymentService(this._apiService);
 
   /// Initiate payment and return PaymentModel
   Future<PaymentModel> initiatePayment({

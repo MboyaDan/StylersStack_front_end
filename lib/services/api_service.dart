@@ -1,78 +1,128 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dio_smart_retry/dio_smart_retry.dart';
+import 'package:go_router/go_router.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:stylerstack/providers/auth_provider.dart';
 
 class ApiService {
+  static const String baseUrl = 'https://your-api.com';
+  final Dio _dio;
+  final GoRouter _router;
+  final AuthProvider _authProvider;
 
-  final String baseUrl = 'your_api_base_url';
-  final _storage = const FlutterSecureStorage();
-  // we will assign it later but won't change upon runtime
-  late final Dio _dio;
-
-  ApiService() {
-    //Api service  wraps Dio + secure storage.
-    _dio = Dio(BaseOptions(
-      baseUrl: baseUrl,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    ));
-// An interceptor injects the JWT token for write requests only.
-    _dio.interceptors.add(
-      InterceptorsWrapper(
-        // Interceptor auto-attaches token
-        onRequest: (options, handler) async {
-          String? token = await _storage.read(key: 'id_token');
-
-          // If token doesn't exist, fetch from Firebase
-          if (token == null) {
-            final user = FirebaseAuth.instance.currentUser;
-            token = await user?.getIdToken();
-            if (token != null) {
-              await _storage.write(key: 'id_token', value: token);
-            }
-          }
-
-          if (token != null) {
-            options.headers['Authorization'] = 'Bearer $token';
-          }
-
-          return handler.next(options);
-        },
-        onError: (DioException e, handler) {
-          print('Dio Error: ${e.message}');
-          return handler.next(e);
-        },
+  ApiService(this._authProvider, this._router)
+      : _dio = Dio(BaseOptions(
+    baseUrl: baseUrl,
+    headers: {'Content-Type': 'application/json'},
+  )) {
+    _dio.interceptors.addAll([
+      _authInterceptor(),
+      _retryInterceptor(),
+      LogInterceptor(
+        request: true,
+        requestHeader: true,
+        responseBody: true,
+        error: true,
       ),
+    ]);
+  }
+
+  /// Retry on network-related errors or server crashes
+  RetryInterceptor _retryInterceptor() {
+    return RetryInterceptor(
+      dio: _dio,
+      logPrint: print,
+      retries: 3,
+      retryDelays: const [
+        Duration(seconds: 1),
+        Duration(seconds: 2),
+        Duration(seconds: 4),
+      ],
+      retryEvaluator: (error, attempt) =>
+      error.type == DioExceptionType.connectionError ||
+          error.type == DioExceptionType.unknown ||
+          error.response?.statusCode == 500 ||
+          error.response?.statusCode == 503,
     );
   }
 
-  /// GET request
-  Future<Response> getRequest(String endpoint, {Map<String, dynamic>? queryParams}) async {
+  /// Attach Authorization headers & refresh tokens if needed
+  InterceptorsWrapper _authInterceptor() {
+    return InterceptorsWrapper(
+      onRequest: (options, handler) async {
+        try {
+          String? token = await _authProvider.getValidToken();
+
+          if (token != null && !JwtDecoder.isExpired(token)) {
+            options.headers['Authorization'] = 'Bearer $token';
+          } else {
+            print('Token is null or expired before sending request.');
+            await _handleLogout();
+            return;
+          }
+
+          handler.next(options);
+        } catch (e, stack) {
+          print('Auth Interceptor Error: $e');
+          print(stack);
+          await _handleLogout();
+        }
+      },
+      onError: (DioException e, handler) async {
+        if (e.response?.statusCode == 401) {
+          print('Received 401. Trying to refresh token...');
+          final newToken = await _authProvider.refreshToken();
+          if (newToken != null) {
+            final options = e.requestOptions;
+            // Save token
+            options.headers['Authorization'] = 'Bearer $newToken';
+            // Retry original request
+            final cloneReq = await _dio.fetch(e.requestOptions);
+            return handler.resolve(cloneReq);
+          } else {
+            print('Token refresh failed. Forcing logout.');
+            await _handleLogout();
+          }
+        }
+
+        handler.next(e);
+      },
+    );
+  }
+
+  /// Log out user, clear token, redirect to login
+  Future<void> _handleLogout() async {
+    await _authProvider.signOut();
+    _router.go('/login');
+  }
+
+  // ========== API METHODS ========== //
+
+  Future<Response> getRequest(
+      String endpoint, {
+        Map<String, dynamic>? queryParams,
+      }) async {
     return await _dio.get(endpoint, queryParameters: queryParams);
   }
 
-  /// POST request
-  Future<Response> postRequest(String endpoint, Map<String, dynamic> data) async {
+  Future<Response> postRequest(
+      String endpoint,
+      Map<String, dynamic> data,
+      ) async {
     return await _dio.post(endpoint, data: data);
   }
 
-  /// PUT request
-  Future<Response> putRequest(String endpoint, Map<String, dynamic> data) async {
+  Future<Response> putRequest(
+      String endpoint,
+      Map<String, dynamic> data,
+      ) async {
     return await _dio.put(endpoint, data: data);
   }
 
-  /// DELETE request
-  Future<Response> deleteRequest(String endpoint, {Map<String, dynamic>? data}) async {
+  Future<Response> deleteRequest(
+      String endpoint, {
+        Map<String, dynamic>? data,
+      }) async {
     return await _dio.delete(endpoint, data: data);
-  }
-
-  /// Force refresh token manually if needed
-  Future<void> refreshToken() async {
-    final user = FirebaseAuth.instance.currentUser;
-    final newToken = await user?.getIdToken(true); // force refresh
-    if (newToken != null) {
-      await _storage.write(key: 'id_token', value: newToken);
-    }
   }
 }

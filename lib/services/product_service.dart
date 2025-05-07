@@ -3,7 +3,8 @@ import 'api_service.dart';
 import '../models/product_model.dart';
 
 class ProductService {
-  final ApiService _apiService = ApiService();
+  final ApiService _apiService;
+  ProductService(this._apiService);
 
   /// Fetch all products
   Future<List<ProductModel>> fetchProducts() async {

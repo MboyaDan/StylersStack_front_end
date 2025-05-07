@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
+import 'package:stylerstack/services/api_service.dart';
 import '../models/cart_item.dart';
 import '../services/cart_service.dart';
 import '../services/isar_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class CartProvider with ChangeNotifier {
-  final CartService _cartService = CartService();
+  final CartService _cartService;
+  CartProvider(ApiService apiService) : _cartService = CartService(apiService);
   final Isar _isar = IsarService.instance;
 
   List<CartItemModel> _cartItems = [];

@@ -3,7 +3,8 @@ import 'api_service.dart';
 import 'package:dio/dio.dart';
 
 class CartService {
-  final ApiService _apiService = ApiService();
+  final ApiService _apiService;
+  CartService(this._apiService);
 
   /// Fetch cart items from API
   Future<List<CartItemModel>> fetchCartItems({required String userId}) async {
