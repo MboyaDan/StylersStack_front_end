@@ -16,7 +16,7 @@ class ProductListScreen extends StatelessWidget{
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("All Products"),
+        title: const Text("All Products"),
 
       ),
       body: GridView.builder(
@@ -31,8 +31,8 @@ class ProductListScreen extends StatelessWidget{
           itemBuilder: (context,index){
            final product = products[index];
             return GestureDetector(
-              onTap: (){
-                context.push('/product-detail',extra:product);
+              onTap: () async {
+                await context.push('/product-detail',extra:product);
               },
               child: ProductCard(product: product),
             );

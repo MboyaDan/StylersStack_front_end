@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:stylerstack/providers/payment_provider.dart';
+import 'package:stylerstack/utils/constants.dart';
 import '../../providers/cart_provider.dart';
 
 class PaymentMethodScreen extends StatelessWidget {
@@ -7,10 +9,8 @@ class PaymentMethodScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cartProvider = context.watch<CartProvider>();
-
-    void _selectPayment(String method) {
-      cartProvider.setPaymentMethod(method);
+    void selectPayment(String method) {
+     context.read<PaymentProvider>().setPaymentMethod(method);
       Navigator.pop(context);
     }
 
@@ -20,9 +20,9 @@ class PaymentMethodScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _buildPaymentOption(context, "Credit Card", Icons.credit_card, _selectPayment),
-          _buildPaymentOption(context, "PayPal", Icons.account_balance_wallet, _selectPayment),
-          _buildPaymentOption(context, "Cash on Delivery", Icons.money, _selectPayment),
+          _buildPaymentOption(context, "Credit Card", Icons.credit_card, selectPayment),
+          _buildPaymentOption(context, "PayPal", Icons.account_balance_wallet, selectPayment),
+          _buildPaymentOption(context, "Cash on Delivery", Icons.money, selectPayment),
         ],
       ),
     );
@@ -31,7 +31,7 @@ class PaymentMethodScreen extends StatelessWidget {
   Widget _buildPaymentOption(BuildContext context, String method, IconData icon, Function(String) onSelect) {
     return Card(
       child: ListTile(
-        leading: Icon(icon, color: Colors.brown),
+        leading: Icon(icon, color:AppColors.primary),
         title: Text(method),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => onSelect(method),

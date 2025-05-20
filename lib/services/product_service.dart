@@ -9,7 +9,7 @@ class ProductService {
   /// Fetch all products
   Future<List<ProductModel>> fetchProducts() async {
     try {
-      final Response response = await _apiService.getRequest('products');
+      final Response response = await _apiService.getRequest('/products');
       final List<dynamic> data = response.data;
 
       return data.map((item) => ProductModel.fromJson(item)).toList();

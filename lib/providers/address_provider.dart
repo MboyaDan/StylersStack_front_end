@@ -12,6 +12,8 @@ class AddressProvider extends ChangeNotifier {
 
   AddressModel? get address => _address;
 
+  String get displayAddress => _address?.address ?? 'Not provided';
+
   Future<void> fetchAddress() async {
     _address = await _addressService.fetchAddress();
     notifyListeners();
@@ -24,5 +26,10 @@ class AddressProvider extends ChangeNotifier {
       _address = newModel;
       notifyListeners();
     }
+  }
+
+  void clearAddress(){
+    _address = null;
+    notifyListeners();
   }
 }

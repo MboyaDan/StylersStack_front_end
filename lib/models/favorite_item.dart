@@ -1,36 +1,46 @@
-import 'package:isar/isar.dart';
+import 'package:hive/hive.dart';
 
 part 'favorite_item.g.dart';
 
-@Collection()
-class FavoriteItem {
-  Id id = Isar.autoIncrement;
+@HiveType(typeId: 1)   // ← give this typeId a unique number in your app
+class FavoriteItem extends HiveObject {
+  @HiveField(0)
+  final String productId;
 
-  late String productId;
-  late String productName;
-  late String imageUrl;
-  late double price;
-  late String userId; // for separation
+  @HiveField(1)
+  final String productName;
 
-  FavoriteItem();
+  @HiveField(2)
+  final String imageUrl;
 
-  // Constructor for creating FavoriteItem from JSON
+  @HiveField(3)
+  final double price;
+
+  @HiveField(4)
+  final String userId;   // still keep it for multi-user devices
+
+  FavoriteItem({
+    required this.productId,
+    required this.productName,
+    required this.imageUrl,
+    required this.price,
+    required this.userId,
+  });
+
   factory FavoriteItem.fromJson(Map<String, dynamic> json, String userId) {
-    return FavoriteItem()
-      ..productId = json['productId']
-      ..productName = json['productName']
-      ..imageUrl = json['imageUrl']
-      ..price = (json['price'] as num).toDouble()
-      ..userId = userId;
+    return FavoriteItem(
+      productId: json['productId'],
+      productName: json['productName'],
+      imageUrl: json['imageUrl'],
+      price: (json['price'] as num).toDouble(),
+      userId: userId,
+    );
   }
 
-  // Convert FavoriteItem to JSON for API interaction or other purposes
-  Map<String, dynamic> toJson() {
-    return {
-      'productId': productId,
-      'productName': productName,
-      'imageUrl': imageUrl,
-      'price': price,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+    'productId': productId,
+    'productName': productName,
+    'imageUrl': imageUrl,
+    'price': price,
+  };
 }

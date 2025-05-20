@@ -3,13 +3,16 @@ import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:stylerstack/providers/auth_provider.dart';
-
+//== API SERVICE ==//
 class ApiService {
-  static const String baseUrl = 'https://your-api.com';
+
+  /// Base URL for your API
+  static const String baseUrl = 'http://10.0.2.2:8000';
   final Dio _dio;
   final GoRouter _router;
   final AuthProvider _authProvider;
 
+  //======= API SERVICE CONSTRUCTOR =========//
   ApiService(this._authProvider, this._router)
       : _dio = Dio(BaseOptions(
     baseUrl: baseUrl,
@@ -26,7 +29,7 @@ class ApiService {
       ),
     ]);
   }
-
+/// ========== INTERCEPTORS ========== //
   /// Retry on network-related errors or server crashes
   RetryInterceptor _retryInterceptor() {
     return RetryInterceptor(
@@ -45,8 +48,7 @@ class ApiService {
           error.response?.statusCode == 503,
     );
   }
-
-  /// Attach Authorization headers & refresh tokens if needed
+/// Interceptor to attach Authorization headers & refresh tokens if needed
   InterceptorsWrapper _authInterceptor() {
     return InterceptorsWrapper(
       onRequest: (options, handler) async {
@@ -126,3 +128,6 @@ class ApiService {
     return await _dio.delete(endpoint, data: data);
   }
 }
+////personal notes retrieving the JWT token, refreshing it if expired,
+// intercepting and retrying failed requests (e.g., 401),
+//securely storing the token (via flutter_secure_storage)////

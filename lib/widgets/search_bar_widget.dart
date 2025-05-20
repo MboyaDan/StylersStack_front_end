@@ -8,7 +8,6 @@ import '../services/connectivity_service.dart';
 
 class SearchBarWidget extends StatefulWidget {
   final CategoryType? initialCategory;
-
   const SearchBarWidget({super.key, this.initialCategory});
 
   @override
@@ -17,8 +16,9 @@ class SearchBarWidget extends StatefulWidget {
 
 class _SearchBarWidgetState extends State<SearchBarWidget> {
   final TextEditingController _controller = TextEditingController();
-  final BehaviorSubject<String> _searchSubject = BehaviorSubject.seeded('');
-  final BehaviorSubject<CategoryType?> _categorySubject = BehaviorSubject<CategoryType?>();
+  final _searchSubject = BehaviorSubject<String>.seeded('');
+  final _categorySubject = BehaviorSubject<CategoryType?>();
+
   late final Stream<List<String>> _suggestionsStream;
   late final ProductProvider productProvider;
 
@@ -28,50 +28,42 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   @override
   void initState() {
     super.initState();
-
     productProvider = context.read<ProductProvider>();
-    final initialCat = widget.initialCategory ?? productProvider.selectedCategory;
+
+    final initialCat =
+        widget.initialCategory ?? productProvider.selectedCategory;
     _categorySubject.add(initialCat);
 
+    // search + category => query stream
     _suggestionsStream = Rx.combineLatest2<String, CategoryType?, void>(
       _searchSubject.debounceTime(const Duration(milliseconds: 400)).distinct(),
       _categorySubject.distinct(),
           (query, category) {
         productProvider.searchWithCategory(query: query, category: category);
       },
-    ).switchMap((_) {
-      return productProvider.searchedProductsStream.map((products) {
-        return products.map((p) => p.name).toSet().take(5).toList();
-      });
-    });
+    ).switchMap((_) => productProvider.searchedProductsStream.map(
+          (products) => products.map((p) => p.name).toSet().take(5).toList(),
+    ));
 
     _controller.addListener(() {
       final text = _controller.text.trim();
-      if (_searchSubject.value != text) {
-        _searchSubject.add(text);
-      }
+      if (_searchSubject.value != text) _searchSubject.add(text);
     });
 
-    //  Listen to internet status and show SnackBar
+    // snackbar for connectivity
     final connectivityService = context.read<ConnectivityService>();
-    _internetSub = connectivityService.internetStatusStream.listen((hasInternet) {
-      if (_lastInternetStatus != hasInternet) {
-        final message = hasInternet
-            ? 'Internet connected'
-            : 'Internet lost. Some features may not work.';
-        final color = hasInternet ? Colors.green : Colors.red;
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message),
-              backgroundColor: color,
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        }
-
-        _lastInternetStatus = hasInternet;
+    _internetSub = connectivityService.internetStatusStream.listen((hasNet) {
+      if (_lastInternetStatus != hasNet) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(hasNet
+                ? 'Internet connected'
+                : 'Internet lost. Some features may not work.',),
+            backgroundColor: hasNet ? Colors.green : Colors.red,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        _lastInternetStatus = hasNet;
       }
     });
   }
@@ -85,24 +77,56 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
     super.dispose();
   }
 
+  /// Opens bottom-sheet, returns selected (or null for “All”)
+  Future<void> _openCategorySheet() async {
+    final selected = await showModalBottomSheet<CategoryType?>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => ListView(
+        shrinkWrap: true,
+        children: [
+          ListTile(
+            title: const Text('All Categories'),
+            leading: const Icon(Icons.layers_clear),
+            onTap: () => Navigator.pop(context, null),
+          ),
+          ...CategoryType.values.map(
+                (cat) => ListTile(
+              title: Text(cat.label),
+              leading: const Icon(Icons.label_outline),
+              onTap: () => Navigator.pop(context, cat),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // update only if changed
+    if (selected != _categorySubject.valueOrNull) {
+      _categorySubject.add(selected);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final categoryOptions = CategoryType.values;
     final connectivityService = context.watch<ConnectivityService>();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        /// === SEARCH BAR + FILTER + CATEGORY CHIP ===
         Row(
           children: [
-            const Icon(Icons.search, color: Colors.grey),
-            const SizedBox(width: 8),
+            // search box
             Expanded(
               child: TextField(
                 controller: _controller,
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
-                  hintText: 'Search products...',
+                  hintText: 'Search products…',
+                  prefixIcon: const Icon(Icons.search, color: Colors.brown),
                   suffixIcon: _controller.text.isNotEmpty
                       ? IconButton(
                     icon: const Icon(Icons.clear),
@@ -112,64 +136,96 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                     },
                   )
                       : null,
+                  contentPadding:
+                  const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide(color: Colors.brown.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide(color: Colors.brown.shade300),
+                  ),
+                  focusedBorder: const OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(30)),
+                    borderSide: BorderSide(color: Colors.brown, width: 2),
+                  ),
                 ),
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        DropdownButton<CategoryType?>(
-          value: _categorySubject.valueOrNull,
-          hint: const Text("Select Category"),
-          isExpanded: true,
-          items: [
-            const DropdownMenuItem<CategoryType?>(
-              value: null,
-              child: Text("All Categories"),
+            const SizedBox(width: 8),
+
+            // filter button
+            Container(
+              height: 48,
+              width: 48,
+              decoration: BoxDecoration(
+                color: Colors.brown.shade50,
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: Colors.brown.shade200),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.filter_list, color: Colors.brown),
+                onPressed: _openCategorySheet,
+              ),
             ),
-            ...categoryOptions.map((cat) => DropdownMenuItem<CategoryType>(
-              value: cat,
-              child: Text(cat.label),
-            )),
+
+            // selected category chip
+            StreamBuilder<CategoryType?>(
+              stream: _categorySubject,
+              builder: (context, snapshot) {
+                final cat = snapshot.data;
+                if (cat == null) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Chip(
+                    label: Text(cat.label),
+                    deleteIcon: const Icon(Icons.close, size: 18),
+                    onDeleted: () => _categorySubject.add(null),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                );
+              },
+            ),
           ],
-          onChanged: (selected) {
-            _categorySubject.add(selected);
-          },
         ),
+
         const SizedBox(height: 10),
-        // Listen to internet stream and only show suggestions if connected
+
+        /// === SEARCH SUGGESTIONS (only if online) ===
         StreamBuilder<bool>(
           stream: connectivityService.internetStatusStream,
-          builder: (context, snapshot) {
-            final hasInternet = snapshot.data ?? false;
+          builder: (context, snap) {
+            final hasInternet = snap.data ?? false;
             if (!hasInternet) {
               return const Padding(
-                padding: EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(8),
                 child: Text(
                   'No internet connection. Try again later.',
                   style: TextStyle(color: Colors.red),
                 ),
               );
             }
-//show suggestions if connected this is our subscriber
+
             return StreamBuilder<List<String>>(
               stream: _suggestionsStream,
-              builder: (context, snapshot) {
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              builder: (context, snap2) {
+                if (!snap2.hasData || snap2.data!.isEmpty) {
                   return const SizedBox.shrink();
                 }
-
-                final suggestions = snapshot.data!;
+                final suggestions = snap2.data!;
                 return ListView.builder(
                   shrinkWrap: true,
                   itemCount: suggestions.length,
-                  itemBuilder: (context, index) {
-                    final suggestion = suggestions[index];
+                  itemBuilder: (_, i) {
+                    final s = suggestions[i];
                     return ListTile(
-                      title: Text(suggestion),
+                      title: Text(s),
                       onTap: () {
-                        _controller.text = suggestion;
-                        _searchSubject.add(suggestion);
+                        _controller.text = s;
+                        _searchSubject.add(s);
                       },
                     );
                   },

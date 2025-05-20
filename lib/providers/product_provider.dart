@@ -7,8 +7,19 @@ import '../models/product_model.dart';
 
 //combining provider with rxdart for searching and filtering products
 class ProductProvider with ChangeNotifier {
-  final ProductService _productService;
-  ProductProvider(ApiService apiService) : _productService = ProductService(apiService);
+
+  //lazy loading to support late injection
+  late ProductService _productService;
+
+  ProductProvider();
+
+  Future<void> updateApiService(ApiService apiService) async {
+    _productService = ProductService(apiService);
+    // Load products after updating the service
+    await loadProducts();
+  }
+
+
 
   List<ProductModel> _products = [];
   List<ProductModel> _filteredProducts = [];
@@ -18,7 +29,7 @@ class ProductProvider with ChangeNotifier {
   String _searchQuery = '';
   CategoryType? _selectedCategory;
 
-  // 🔹 Expose a BehaviorSubject for reactive search results
+  // Expose a BehaviorSubject for reactive search results
   final BehaviorSubject<List<ProductModel>> _searchedProductsSubject =
   BehaviorSubject<List<ProductModel>>.seeded([]);
 
@@ -37,11 +48,11 @@ class ProductProvider with ChangeNotifier {
   List<ProductModel> get searchedProducts =>
       _searchQuery.isEmpty ? filteredProducts : _searchedProducts;
 
-  // 🔹 Rx stream of searched products
+  //  Rx stream of searched products
   Stream<List<ProductModel>> get searchedProductsStream =>
       _searchedProductsSubject.stream;
 
-  // 🔄 Load products from backend
+  // Load products from backend
   Future<void> loadProducts() async {
     _isLoading = true;
     notifyListeners();

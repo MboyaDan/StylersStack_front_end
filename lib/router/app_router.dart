@@ -3,19 +3,19 @@ import 'package:go_router/go_router.dart';
 import 'package:stylerstack/models/category_type.dart';
 import 'package:stylerstack/views/auth/login_screen.dart';
 import 'package:stylerstack/views/auth/registration_screen.dart';
+import 'package:stylerstack/views/cart/payment_sucess_screen.dart';
 import 'package:stylerstack/views/category/category_product_Screen.dart';
 import 'package:stylerstack/views/home/home_screen.dart';
 import 'package:stylerstack/views/home/splash_screen.dart';
 import 'package:stylerstack/providers/auth_provider.dart';
 import 'package:stylerstack/views/product/ProductListScreen.dart';
 
-import '../models/product_model.dart';
-import '../views/cart/checkout_screen.dart';
-import '../views/cart/my_cart_screen.dart';
-import '../views/cart/payment_method.dart';
-import '../views/cart/payment_success_screen.dart';
-import '../views/cart/shipping_address.dart';
-import '../views/product/product_details.dart';
+import 'package:stylerstack/models/product_model.dart';
+import 'package:stylerstack/views/cart/checkout_screen.dart';
+import 'package:stylerstack/views/cart/my_cart_screen.dart';
+import 'package:stylerstack/views/cart/payment_method.dart';
+import 'package:stylerstack/views/cart/shipping_address.dart';
+import 'package:stylerstack/views/product/product_details.dart';
 
 GoRouter createRouter(AuthProvider authProvider) {
   return GoRouter(
@@ -113,6 +113,10 @@ GoRouter createRouter(AuthProvider authProvider) {
         final category = state.extra as CategoryType;
         return CategoryProductScreen(category: category);
         },
+      ),
+      GoRoute(
+        path: '/payment-success',
+        builder: (context, state) => const PaymentSuccessScreen(),
       ),
     ],
   );

@@ -10,7 +10,7 @@ class AddressService {
   /// Fetch the current user's address
   Future<AddressModel> fetchAddress() async {
     try {
-      final Response response = await _apiService.getRequest('address');
+      final Response response = await _apiService.getRequest('/address');
 
       return AddressModel.fromJson(response.data);
     } on DioException catch (e) {

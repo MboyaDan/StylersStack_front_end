@@ -4,16 +4,50 @@ import 'package:stylerstack/services/payment_service.dart';
 import '../models/payment_model.dart';
 import '../services/api_service.dart';
 
-class PaymentProvider extends ChangeNotifier{
+class PaymentProvider extends ChangeNotifier {
   final PaymentService _paymentService;
   PaymentProvider(ApiService apiService) : _paymentService = PaymentService(apiService);
-  late final String _userId;
-  final List<PaymentModel> _payments = [];
-  final bool _isLoading = false;
 
+  String? _selectedMethod;
+  bool _isLoading = false;
+  PaymentModel? _payment;
+  String? _error;
 
-
-  //getters
+  // Getters
+  String? get selectedMethod => _selectedMethod;
   bool get isLoading => _isLoading;
+  PaymentModel? get payment => _payment;
+  String? get error => _error;
 
+  // Select a method
+  void setPaymentMethod(String method) {
+    _selectedMethod = method;
+    notifyListeners();
+  }
+
+  // Initiate payment
+  Future<void> initiatePayment({
+    required double amount,
+    required String currency,
+    required String orderId,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final result = await _paymentService.initiatePayment(
+        amount: amount,
+        currency: currency,
+        paymentMethod: _selectedMethod!,
+        orderId: orderId,
+      );
+      _payment = result;
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

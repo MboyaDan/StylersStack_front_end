@@ -17,9 +17,9 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if  (mounted ) {
-      context.read<AddressProvider>().fetchAddress();
+      await context.read<AddressProvider>().fetchAddress();
       }
     });
   }

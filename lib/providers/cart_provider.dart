@@ -1,40 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:isar/isar.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:stylerstack/services/api_service.dart';
 import '../models/cart_item.dart';
 import '../services/cart_service.dart';
-import '../services/isar_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class CartProvider with ChangeNotifier {
   final CartService _cartService;
   CartProvider(ApiService apiService) : _cartService = CartService(apiService);
-  final Isar _isar = IsarService.instance;
 
-  List<CartItemModel> _cartItems = [];
+  final Box<CartItemModel> _cartBox = Hive.box<CartItemModel>('cartBox');
+  String? _appliedPromoCode;
+  double _discountPercentage = 0.0;
+
   bool _isLoading = false;
-
-  List<CartItemModel> get cartItems => _cartItems;
   bool get isLoading => _isLoading;
 
-  String? get _userId {
-    final user = FirebaseAuth.instance.currentUser;
-    return user?.uid;
-  }
+  List<CartItemModel> get cartItems => _cartBox.values.toList();
 
-  Future<void> loadCartFromLocal() async {
-    final userId = _userId;
-    if (userId == null) return;
+  String? get _userId => FirebaseAuth.instance.currentUser?.uid;
 
-    _isLoading = true;
-    notifyListeners();
-
-    _cartItems = await _isar.collection<CartItemModel>()
-        .filter()
-        .userIdEqualTo(userId)
-        .findAll();
-
-    _isLoading = false;
+  void applyPromoCode(String code) {
+    if (code.trim().toLowerCase() == 'styler10') {
+      _appliedPromoCode = code;
+      _discountPercentage = 0.1;
+    } else {
+      _appliedPromoCode = null;
+      _discountPercentage = 0.0;
+    }
     notifyListeners();
   }
 
@@ -47,16 +40,10 @@ class CartProvider with ChangeNotifier {
 
     try {
       final items = await _cartService.fetchCartItems(userId: userId);
-
-      await _isar.writeTxn(() async {
-        await _isar.collection<CartItemModel>()
-            .filter()
-            .userIdEqualTo(userId)
-            .deleteAll();
-        await _isar.collection<CartItemModel>().putAll(items);
-      });
-
-      _cartItems = items;
+      await _cartBox.clear();
+      for (var item in items) {
+        _cartBox.put(item.productId, item);
+      }
     } catch (e) {
       debugPrint('Fetch cart error: $e');
     }
@@ -65,23 +52,14 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addToCart({
-    required String productId,
-    required String productName,
-    required double productPrice,
-    required String productImageUrl,
-    int quantity = 1,
-  }) async {
+  Future<void> addToCart({required String productId, required String productName, required double productPrice, required String productImageUrl, int quantity = 1}) async {
     final userId = _userId;
     if (userId == null) return;
 
     try {
-      await _cartService.addItemToCart(
-        productId: productId,
-        quantity: quantity,
-      );
+      await _cartService.addItemToCart(productId: productId, quantity: quantity);
 
-      final newItem = CartItemModel(
+      final item = CartItemModel(
         userId: userId,
         productId: productId,
         productName: productName,
@@ -90,11 +68,7 @@ class CartProvider with ChangeNotifier {
         quantity: quantity,
       );
 
-      await _isar.writeTxn(() async {
-        await _isar.collection<CartItemModel>().put(newItem);
-      });
-
-      _cartItems.add(newItem);
+      _cartBox.put(productId, item);
       notifyListeners();
     } catch (e) {
       debugPrint('Add to cart error: $e');
@@ -106,17 +80,8 @@ class CartProvider with ChangeNotifier {
     if (userId == null) return;
 
     try {
-      await _cartService.removeItemFromCart(
-        productId: productId,
-      );
-
-      final item = _cartItems.firstWhere((item) => item.productId == productId);
-
-      await _isar.writeTxn(() async {
-        await _isar.collection<CartItemModel>().delete(item.id);
-      });
-
-      _cartItems.remove(item);
+      await _cartService.removeItemFromCart(productId: productId);
+      _cartBox.delete(productId);
       notifyListeners();
     } catch (e) {
       debugPrint('Remove from cart error: $e');
@@ -124,24 +89,13 @@ class CartProvider with ChangeNotifier {
   }
 
   Future<void> updateCartItem(String productId, int newQuantity) async {
-    final userId = _userId;
-    if (userId == null) return;
-
     try {
-      await _cartService.updateItemQuantity(
-        productId: productId,
-        quantity: newQuantity,
-      );
+      await _cartService.updateItemQuantity(productId: productId, quantity: newQuantity);
 
-      final itemIndex = _cartItems.indexWhere((item) => item.productId == productId);
-
-      if (itemIndex != -1) {
-        _cartItems[itemIndex].quantity = newQuantity;
-
-        await _isar.writeTxn(() async {
-          await _isar.collection<CartItemModel>().put(_cartItems[itemIndex]);
-        });
-
+      final item = _cartBox.get(productId);
+      if (item != null) {
+        item.quantity = newQuantity;
+        await _cartBox.put(productId, item);
         notifyListeners();
       }
     } catch (e) {
@@ -150,21 +104,13 @@ class CartProvider with ChangeNotifier {
   }
 
   double get totalCartPrice {
-    return _cartItems.fold(0.0, (sum, item) => sum + item.totalPrice);
+    final total = _cartBox.values.fold(0.0, (sum, item) => sum + item.totalPrice);
+    return total - (total * _discountPercentage);
   }
 
   Future<void> clearCart() async {
-    final userId = _userId;
-    if (userId == null) return;
-
-    await _isar.writeTxn(() async {
-      await _isar.collection<CartItemModel>()
-          .filter()
-          .userIdEqualTo(userId)
-          .deleteAll();
-    });
-
-    _cartItems.clear();
+    await _cartBox.clear();
     notifyListeners();
   }
 }
+

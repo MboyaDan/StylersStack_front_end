@@ -1,5 +1,5 @@
-import '../models/cart_item.dart';
-import 'api_service.dart';
+import 'package:stylerstack/models/cart_item.dart';
+import 'package:stylerstack/services/api_service.dart';
 import 'package:dio/dio.dart';
 
 class CartService {
@@ -9,7 +9,7 @@ class CartService {
   /// Fetch cart items from API
   Future<List<CartItemModel>> fetchCartItems({required String userId}) async {
     try {
-      final Response response = await _apiService.getRequest('cart');
+      final Response response = await _apiService.getRequest('/cart');
 
       // Dio decodes JSON automatically into a List/Map
       final List<dynamic> data = response.data;

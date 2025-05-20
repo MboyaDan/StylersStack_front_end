@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
-import '../../providers/cart_provider.dart';
-import '../../providers/address_provider.dart';
-import '../../utils/constants.dart';
+import 'package:stylerstack/providers/cart_provider.dart';
+import 'package:stylerstack/providers/address_provider.dart';
+import 'package:stylerstack/utils/constants.dart';
 
 class PaymentSuccessScreen extends StatefulWidget {
   const PaymentSuccessScreen({super.key});
@@ -19,10 +20,11 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
 
     // Delay the clear calls to after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (mounted) {
-        await context.read<CartProvider>().clearCart();
-        context.read<AddressProvider>().clearAddress();
-      }
+      if (!mounted) return;
+      final cartProvider = context.read<CartProvider>();
+      final addressProvider = context.read<AddressProvider>();
+        await cartProvider.clearCart();
+        addressProvider.clearAddress();
     });
   }
 
@@ -38,8 +40,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.check_circle_rounded,
-                  color: AppColors.primary, size: 100),
+              Lottie.asset('assets/animations/success.json', width: 150, repeat: false),
 
               const SizedBox(height: 20),
 

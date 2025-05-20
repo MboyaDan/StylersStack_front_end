@@ -1,90 +1,71 @@
 import 'package:flutter/material.dart';
-import '../models/favorite_item.dart';
-import '../services/isar_service.dart';
+import 'package:hive/hive.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/favorite_item.dart';
 
 class FavoriteProvider with ChangeNotifier {
-  final IsarService _isarService = IsarService();
+  // The box is opened in main.dart
+  final Box<FavoriteItem> _box = Hive.box<FavoriteItem>('favoriteBox');
+
   List<FavoriteItem> _favorites = [];
   List<FavoriteItem> get favorites => _favorites;
-  String? _userId; // Store the current user's ID
 
-  // Load favorites from Isar for the current user
+  String? get _userId => FirebaseAuth.instance.currentUser?.uid;
+
+  /* ---------- Load ---------- */
   Future<void> loadFavorites() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      _favorites.clear();
-      notifyListeners(); // Notify UI when no user is logged in
-      return;
-    }
-
-    _userId = user.uid;
-    try {
-      // Fetch favorites from Isar using userId
-      _favorites = await _isarService.fetchFavorites(_userId!);
-      notifyListeners(); // Notify UI updates
-    } catch (e) {
-      print("Error loading favorites: $e");
-    }
+    final uid = _userId;
+    _favorites = uid == null
+        ? []
+        : _box.values.where((f) => f.userId == uid).toList();
+    notifyListeners();
   }
 
-  // Add a favorite item for the current user
-  Future<void> addFavorite(FavoriteItem favoriteItem) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+  /* ---------- Add ---------- */
+  Future<void> addFavorite(FavoriteItem fav) async {
+    final uid = _userId;
+    if (uid == null) return;
 
-    _userId = user.uid; // Set userId from current user
-    favoriteItem.userId = _userId!; // Ensure correct userId is added
+    // build a new object with the correct userId
+    final favWithUid = FavoriteItem(
+      productId: fav.productId,
+      productName: fav.productName,
+      imageUrl: fav.imageUrl,
+      price: fav.price,
+      userId: uid,
+    );
 
-    try {
-      // Add favorite to Isar
-      await _isarService.fetchFavorites(_userId!);
-      _favorites.add(favoriteItem); // Add to in-memory list
-      notifyListeners(); // Notify UI updates
-    } catch (e) {
-      print("Error adding favorite: $e");
-    }
+    await _box.put(fav.productId, favWithUid);      // key = productId
+    _favorites.add(favWithUid);
+    notifyListeners();
   }
 
-  // Remove a favorite item for the current user
+  /* ---------- Remove ---------- */
   Future<void> removeFavorite(String productId) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    final uid = _userId;
+    if (uid == null) return;
 
-    _userId = user.uid; // Set userId from current user
-    try {
-      // Remove from Isar based on productId and userId
-      await _isarService.removeFavorite(productId, _userId!);
-      _favorites.removeWhere((item) => item.productId == productId);
-      notifyListeners(); // Notify UI updates
-    } catch (e) {
-      print("Error removing favorite: $e");
-    }
+    _box.delete(productId);
+    _favorites.removeWhere((f) => f.productId == productId);
+    notifyListeners();
   }
 
-  // Sync favorites with Isar (load on startup)
-  Future<void> syncFavorites() async {
-    await loadFavorites(); // Load favorites from Isar for the current user
-  }
-
-  // Clear all favorites when the user logs out
+  /* ---------- Clear on logout ---------- */
   Future<void> clearFavorites() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    final uid = _userId;
+    if (uid == null) return;
 
-    _userId = user.uid; // Set userId from current user
-    try {
-      // Clear favorites from Isar
-      await _isarService.clearFavorites(_userId!);
-      _favorites.clear(); // Clear in-memory list
-      notifyListeners(); // Notify UI updates
-    } catch (e) {
-      print("Error clearing favorites: $e");
-    }
+    _box.values
+        .where((f) => f.userId == uid)
+        .map((f) => f.productId)
+        .toList()
+        .forEach(_box.delete);
+
+    _favorites.clear();
+    notifyListeners();
   }
 
-  // Check if a product is already in the favorites list
-  bool isProductFavorite(String productId) {
-    return _favorites.any((item) => item.productId == productId);
-  }
+  /* ---------- Helpers ---------- */
+  bool isProductFavorite(String productId) =>
+      _favorites.any((f) => f.productId == productId);
 }

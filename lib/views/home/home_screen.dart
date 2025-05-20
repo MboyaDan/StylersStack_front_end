@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:stylerstack/utils/constants.dart';
+import 'package:stylerstack/views/cart/my_cart_screen.dart';
 import 'package:stylerstack/views/home/home_main_screen.dart';
+import 'package:stylerstack/views/profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,10 +15,10 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    HomeMainScreen(),
-    Center(child: Text('Shop')),
-    Center(child: Text('favorite')),
-    Center(child: Text('Profile')),
+    const HomeMainScreen(),
+    const MyCartScreen(),
+    const Center(child: Text('favorite')),
+    const ProfileScreen(),
   ];
 
   @override
@@ -24,9 +27,9 @@ class _HomeScreenState extends State<HomeScreen> {
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        selectedItemColor: Color(0xFF1A237E), // Deep Navy Blue
+        selectedItemColor: AppColors.primary,
         unselectedItemColor: Colors.grey,
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
         onTap: (index) => setState(() => _currentIndex = index),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),

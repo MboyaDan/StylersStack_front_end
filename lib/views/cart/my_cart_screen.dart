@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../widgets/cart_item_card.dart';
-
+import '../../utils/constants.dart';
 class MyCartScreen extends StatelessWidget {
   const MyCartScreen({super.key});
 
@@ -12,9 +12,9 @@ class MyCartScreen extends StatelessWidget {
     final cartItems = cartProvider.cartItems;
 
     return Scaffold(
-      appBar: AppBar(title: Text("My Cart")),
+      appBar: AppBar(title: const Text("My Cart")),
       body: cartItems.isEmpty
-          ? Center(child: Text("Your cart is empty."))
+          ? const Center(child: Text("Your cart is empty."))
           : ListView(
         padding: const EdgeInsets.all(16),
         children: cartItems.map((item) => CartItemCard(cartItem: item)).toList(),
@@ -27,9 +27,10 @@ class MyCartScreen extends StatelessWidget {
     final TextEditingController promoController = TextEditingController();
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      //padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding:const EdgeInsets.all(AppSpacing.padding),
       decoration: const BoxDecoration(
-        color: Color(0xFFF6F6F6),
+        color: AppColors.background,
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -54,13 +55,14 @@ class MyCartScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text("Total: \$${provider.totalCartPrice.toStringAsFixed(2)}",
-                  style: const TextStyle(fontWeight: FontWeight.bold)),
+                  style: const TextStyle(fontWeight: FontWeight.bold),),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFDCC6B0),
+                  //backgroundColor: const Color(0xFFDCC6B0),
+                  backgroundColor: AppColors.background,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
-                onPressed: () => Navigator.pushNamed(context, '/checkout'),
+                onPressed: () async => Navigator.pushNamed(context, '/checkout'),
                 child: const Text("Checkout"),
               ),
             ],

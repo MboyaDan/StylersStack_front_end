@@ -1,19 +1,26 @@
-import 'package:isar/isar.dart';
+import 'package:hive/hive.dart';
 
 part 'cart_item.g.dart';
 
-@Collection()
-class CartItemModel {
-  Id id = Isar.autoIncrement; // Auto-incrementing primary key
+@HiveType(typeId: 0)
+class CartItemModel extends HiveObject {
+  @HiveField(0)
+  final String userId;
 
-  late String userId; // 🛡️ Important: Separate each user's cart items
+  @HiveField(1)
+  final String productId;
 
-  late String productId;
-  late String productName;
-  late double productPrice;
-  late String productImageUrl;
+  @HiveField(2)
+  final String productName;
 
-  int quantity = 1; // Default to 1
+  @HiveField(3)
+  final double productPrice;
+
+  @HiveField(4)
+  final String productImageUrl;
+
+  @HiveField(5)
+  int quantity;
 
   CartItemModel({
     required this.userId,
@@ -21,13 +28,13 @@ class CartItemModel {
     required this.productName,
     required this.productPrice,
     required this.productImageUrl,
-    this.quantity = 1,
+    required this.quantity,
   });
 
-  /// Total price (computed)
   double get totalPrice => productPrice * quantity;
 
-  /// Factory constructor: Create CartItemModel from API JSON
+
+/// Factory constructor: Create CartItemModel from API JSON
   factory CartItemModel.fromJson(Map<String, dynamic> json, {required String userId}) {
     final productJson = json['product'];
     return CartItemModel(

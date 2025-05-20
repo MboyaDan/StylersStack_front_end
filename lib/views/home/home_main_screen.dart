@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:stylerstack/utils/constants.dart';
 import 'package:stylerstack/widgets/category_list_wiget.dart';
 import 'package:stylerstack/widgets/search_bar_widget.dart';
-import '../../widgets/flash_sale_grid_widget.dart';
+import 'package:stylerstack/widgets/flash_sale_grid_widget.dart';
 class  HomeMainScreen extends StatelessWidget{
   const HomeMainScreen({super.key});
 
@@ -15,59 +16,77 @@ class  HomeMainScreen extends StatelessWidget{
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment:CrossAxisAlignment.start,
+              const Text(
+                'Location',
+              ),
+              const SizedBox(height: 10),
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(Icons.location_on),
-                  Spacer(),
-                  Text('New York USA',
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, color: AppColors.primary),
+                      SizedBox(width: 8),
+                      Text(
+                        'New York, USA',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.text,
+                        ),
+                      ),
+                      Icon(Icons.keyboard_arrow_down),
+                    ],
                   ),
+                  Icon(Icons.notifications),
                 ],
               ),
-              SizedBox(height: 10),
-              SearchBarWidget(),
-              SizedBox(height: 25),
+
+              const SizedBox(height: 10),
+              const SearchBarWidget(),
+              const SizedBox(height: 25),
 
               // Banner
           Container(
           height: 150,
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-          color: Color(0xFFDCC6B0),
-          image: DecorationImage(
+          color: const Color(0xFFDCC6B0),
+          image: const DecorationImage(
             image: AssetImage("assets/images/banner.png"),
             fit: BoxFit.cover,
           ),
         ),
-        child: Align(
+        child: const Align(
           alignment: Alignment.bottomLeft,
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16.0),
             child: Text("New Collection\nDiscount 50%",
               style: TextStyle(color: Colors.white, fontSize: 16),
             ),
           ),
         ),
       ),
-      SizedBox(height: 20),
+      const SizedBox(height: 20),
 
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('Categories',
+          const Text('Categories',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF795548),
+              color: Colors.brown,
             ),
           ),
           TextButton(
               onPressed: () {
                 context.go('/products');
                 },
-            child: Text(
+            child: const Text(
             'See All',
             style: TextStyle(
               fontSize: 20,
@@ -78,10 +97,10 @@ class  HomeMainScreen extends StatelessWidget{
           ),
         ],
       ),
-              SizedBox(height: 10),
-              CategoryListWidget(),
-              SizedBox(height: 25),
-              Text(
+              const SizedBox(height: 10),
+              const CategoryListWidget(),
+              const SizedBox(height: 25),
+              const Text(
                 'Flash Sale',
                 style: TextStyle(
                   fontSize: 20,
@@ -89,8 +108,8 @@ class  HomeMainScreen extends StatelessWidget{
                   color: Color(0xFF795548), // Deep Navy Blue
                 ),
               ),
-              SizedBox(height: 10),
-              FlashSaleGridWidget(),
+              const SizedBox(height: 10),
+              const FlashSaleGridWidget(),
             ],
           ),
         ),

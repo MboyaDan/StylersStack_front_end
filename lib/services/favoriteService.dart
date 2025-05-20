@@ -9,7 +9,7 @@ class FavoriteService {
   /// Fetch all favorite items for the current user from the API
   Future<List<FavoriteItem>> fetchFavorites(String userId) async {
     try {
-      final Response response = await _apiService.getRequest('favorites');
+      final Response response = await _apiService.getRequest('/favorites');
 
       final List<dynamic> data = response.data;
       return data.map((item) => FavoriteItem.fromJson(item, userId)).toList();

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/adapters.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:stylerstack/models/cart_item.dart';
+import 'package:stylerstack/models/favorite_item.dart';
 import 'package:stylerstack/providers/address_provider.dart';
 import 'package:stylerstack/providers/auth_provider.dart';
 import 'package:stylerstack/providers/cart_provider.dart';
@@ -16,6 +20,12 @@ import 'package:go_router/go_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final appDir = await getApplicationDocumentsDirectory();
+  Hive.init(appDir.path);
+  Hive.registerAdapter(CartItemModelAdapter());
+  Hive.registerAdapter(FavoriteItemAdapter());
+  await Hive.openBox<CartItemModel>('cartBox');
+  await Hive.openBox<FavoriteItem>('favoriteBox');
   await Firebase.initializeApp();
   runApp(const StyleStackApp());
 }
@@ -41,9 +51,14 @@ class StyleStackApp extends StatelessWidget {
 
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
 
-        ProxyProvider<ApiService, ProductProvider>(
-          update: (_, apiService, __) => ProductProvider(apiService),
-        ),
+        //product provider
+        ChangeNotifierProxyProvider<ApiService, ProductProvider>(
+          create: (_) => ProductProvider(),
+          update: (_, apiService, provider) {
+            provider!.updateApiService(apiService);
+            return provider;
+    },
+    ),
 
         ChangeNotifierProvider(create: (_) => FavoriteProvider()),
 
@@ -51,8 +66,11 @@ class StyleStackApp extends StatelessWidget {
           update: (_, apiService, __) => PaymentProvider(apiService),
         ),
 
-        ProxyProvider<ApiService, CartProvider>(
-          update: (_, apiService, __) => CartProvider(apiService),
+        ///cart provider
+        ChangeNotifierProxyProvider<ApiService, CartProvider>(
+          create: (context) => CartProvider(context.read<ApiService>()),
+          update: (context, apiService, previous) =>
+              CartProvider(apiService),
         ),
 
         ProxyProvider<ApiService, AddressProvider>(

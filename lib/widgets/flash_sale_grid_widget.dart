@@ -27,7 +27,7 @@ class FlashSaleGridWidget extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
+            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5)],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
