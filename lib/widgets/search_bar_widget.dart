@@ -2,9 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
-import '../providers/product_provider.dart';
-import '../models/category_type.dart';
-import '../services/connectivity_service.dart';
+import 'package:stylerstack/providers/product_provider.dart';
+import 'package:stylerstack/models/category_type.dart';
+import 'package:stylerstack/services/connectivity_service.dart';
 
 class SearchBarWidget extends StatefulWidget {
   final CategoryType? initialCategory;
@@ -34,7 +34,6 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
         widget.initialCategory ?? productProvider.selectedCategory;
     _categorySubject.add(initialCat);
 
-    // search + category => query stream
     _suggestionsStream = Rx.combineLatest2<String, CategoryType?, void>(
       _searchSubject.debounceTime(const Duration(milliseconds: 400)).distinct(),
       _categorySubject.distinct(),
@@ -50,19 +49,11 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
       if (_searchSubject.value != text) _searchSubject.add(text);
     });
 
-    // snackbar for connectivity
+    // Optional: initial snackBar for transition feedback
     final connectivityService = context.read<ConnectivityService>();
     _internetSub = connectivityService.internetStatusStream.listen((hasNet) {
       if (_lastInternetStatus != hasNet) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(hasNet
-                ? 'Internet connected'
-                : 'Internet lost. Some features may not work.',),
-            backgroundColor: hasNet ? Colors.green : Colors.red,
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        setState(() {});
         _lastInternetStatus = hasNet;
       }
     });
@@ -77,7 +68,6 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
     super.dispose();
   }
 
-  /// Opens bottom-sheet, returns selected (or null for “All”)
   Future<void> _openCategorySheet() async {
     final selected = await showModalBottomSheet<CategoryType?>(
       context: context,
@@ -103,7 +93,6 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
       ),
     );
 
-    // update only if changed
     if (selected != _categorySubject.valueOrNull) {
       _categorySubject.add(selected);
     }
@@ -113,105 +102,135 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   Widget build(BuildContext context) {
     final connectivityService = context.watch<ConnectivityService>();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        /// === SEARCH BAR + FILTER + CATEGORY CHIP ===
-        Row(
+    return StreamBuilder<bool>(
+      stream: connectivityService.internetStatusStream,
+      builder: (context, snapshot) {
+        final isConnected = snapshot.data ?? true;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // search box
-            Expanded(
-              child: TextField(
-                controller: _controller,
-                textInputAction: TextInputAction.search,
-                decoration: InputDecoration(
-                  hintText: 'Search products…',
-                  prefixIcon: const Icon(Icons.search, color: Colors.brown),
-                  suffixIcon: _controller.text.isNotEmpty
-                      ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      _controller.clear();
-                      _searchSubject.add('');
-                    },
-                  )
-                      : null,
-                  contentPadding:
-                  const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: BorderSide(color: Colors.brown.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: BorderSide(color: Colors.brown.shade300),
-                  ),
-                  focusedBorder: const OutlineInputBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(30)),
-                    borderSide: BorderSide(color: Colors.brown, width: 2),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-
-            // filter button
-            Container(
-              height: 48,
-              width: 48,
-              decoration: BoxDecoration(
-                color: Colors.brown.shade50,
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: Colors.brown.shade200),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.filter_list, color: Colors.brown),
-                onPressed: _openCategorySheet,
-              ),
-            ),
-
-            // selected category chip
-            StreamBuilder<CategoryType?>(
-              stream: _categorySubject,
-              builder: (context, snapshot) {
-                final cat = snapshot.data;
-                if (cat == null) return const SizedBox.shrink();
-                return Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: Chip(
-                    label: Text(cat.label),
-                    deleteIcon: const Icon(Icons.close, size: 18),
-                    onDeleted: () => _categorySubject.add(null),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+            /// Fixed top banner
+            if (!isConnected)
+              Container(
+                width: double.infinity,
+                color: Colors.red,
+                padding: const EdgeInsets.all(8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'No internet connection',
+                      style: TextStyle(color: Colors.white),
                     ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 10),
-
-        /// === SEARCH SUGGESTIONS (only if online) ===
-        StreamBuilder<bool>(
-          stream: connectivityService.internetStatusStream,
-          builder: (context, snap) {
-            final hasInternet = snap.data ?? false;
-            if (!hasInternet) {
-              return const Padding(
-                padding: EdgeInsets.all(8),
-                child: Text(
-                  'No internet connection. Try again later.',
-                  style: TextStyle(color: Colors.red),
+                    TextButton(
+                      onPressed: () async {
+                        final status = await connectivityService.internetStatusStream.first;
+                        if (!status) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Still offline')),
+                          );
+                        }
+                      },
+                      child: const Text('Retry', style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
                 ),
-              );
-            }
+              ),
 
-            return StreamBuilder<List<String>>(
+            const SizedBox(height: 10),
+
+            /// === SEARCH BAR + FILTER + CATEGORY CHIP ===
+            Opacity(
+              opacity: isConnected ? 1 : 0.5,
+              child: IgnorePointer(
+                ignoring: !isConnected,
+                child: Row(
+                  children: [
+                    // search box
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        textInputAction: TextInputAction.search,
+                        decoration: InputDecoration(
+                          hintText: 'Search products…',
+                          prefixIcon: const Icon(Icons.search, color: Colors.brown),
+                          suffixIcon: _controller.text.isNotEmpty
+                              ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _controller.clear();
+                              _searchSubject.add('');
+                            },
+                          )
+                              : null,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide(color: Colors.brown.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30),
+                            borderSide: BorderSide(color: Colors.brown.shade300),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(30)),
+                            borderSide: BorderSide(color: Colors.brown, width: 2),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // filter button
+                    Container(
+                      height: 48,
+                      width: 48,
+                      decoration: BoxDecoration(
+                        color: Colors.brown.shade50,
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(color: Colors.brown.shade200),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.filter_list, color: Colors.brown),
+                        onPressed: _openCategorySheet,
+                      ),
+                    ),
+
+                    // selected category chip
+                    StreamBuilder<CategoryType?>(
+                      stream: _categorySubject,
+                      builder: (context, snapshot) {
+                        final cat = snapshot.data;
+                        if (cat == null) return const SizedBox.shrink();
+                        return Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Chip(
+                            label: Text(cat.label),
+                            deleteIcon: const Icon(Icons.close, size: 18),
+                            onDeleted: () => _categorySubject.add(null),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            /// === SEARCH SUGGESTIONS ===
+            isConnected
+                ? StreamBuilder<List<String>>(
               stream: _suggestionsStream,
               builder: (context, snap2) {
+                if (snap2.connectionState == ConnectionState.waiting) {
+                  return const LinearProgressIndicator();
+                }
                 if (!snap2.hasData || snap2.data!.isEmpty) {
                   return const SizedBox.shrink();
                 }
@@ -231,10 +250,23 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                   },
                 );
               },
-            );
-          },
-        ),
-      ],
+            )
+                : const SizedBox.shrink(),
+
+            // OPTIONAL: Floating dot for global status (enable if desired)
+            // Align(
+            //   alignment: Alignment.topRight,
+            //   child: Padding(
+            //     padding: const EdgeInsets.only(top: 4.0, right: 8.0),
+            //     child: CircleAvatar(
+            //       radius: 6,
+            //       backgroundColor: isConnected ? Colors.green : Colors.red,
+            //     ),
+            //   ),
+            // ),
+          ],
+        );
+      },
     );
   }
 }
