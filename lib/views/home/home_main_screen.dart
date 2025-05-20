@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stylerstack/utils/constants.dart';
 import 'package:stylerstack/widgets/category_list_wiget.dart';
-import 'package:stylerstack/widgets/search_bar_widget.dart';
+import 'package:stylerstack/widgets/search_bar/search_bar_widget.dart';
 import 'package:stylerstack/widgets/flash_sale_grid_widget.dart';
 class  HomeMainScreen extends StatelessWidget{
   const HomeMainScreen({super.key});
