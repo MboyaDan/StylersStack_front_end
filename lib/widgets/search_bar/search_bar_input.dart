@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stylerstack/models/category_type.dart';
+import 'package:stylerstack/utils/constants.dart';
 
 class SearchBarInput extends StatelessWidget {
   final TextEditingController controller;
@@ -59,12 +60,12 @@ class SearchBarInput extends StatelessWidget {
               height: 48,
               width: 48,
               decoration: BoxDecoration(
-                color: Colors.brown.shade50,
+                color: AppColors.background,
                 borderRadius: BorderRadius.circular(30),
                 border: Border.all(color: Colors.brown.shade200),
               ),
               child: IconButton(
-                icon: const Icon(Icons.filter_list, color: Colors.brown),
+                icon: const Icon(Icons.filter_list, color: AppColors.primary),
                 onPressed: onFilterTap,
               ),
             ),

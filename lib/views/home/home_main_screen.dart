@@ -21,6 +21,11 @@ class  HomeMainScreen extends StatelessWidget{
             children: [
               const Text(
                 'Location',
+            style: TextStyle(
+              color: AppColors.text,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
               ),
               const SizedBox(height: 10),
               const Row(
@@ -51,23 +56,68 @@ class  HomeMainScreen extends StatelessWidget{
 
               // Banner
           Container(
-          height: 150,
+          height: 200,
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
           color: const Color(0xFFDCC6B0),
           image: const DecorationImage(
-            image: AssetImage("assets/images/banner.png"),
+            image: AssetImage("assets/images/banner.jpg"),
             fit: BoxFit.cover,
           ),
         ),
-        child: const Align(
-          alignment: Alignment.bottomLeft,
+        child: Align(
+          alignment: Alignment.bottomRight,
           child: Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text("New Collection\nDiscount 50%",
-              style: TextStyle(color: Colors.white, fontSize: 16),
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+              const Text("New Collection",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                color:AppColors.primary,
+                fontSize: 16,),
             ),
-          ),
+                const SizedBox(height: 5),
+
+                const Text("Discount 50% On \n All new Products",
+                  textAlign: TextAlign.start,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                    fontSize: 12,),
+                ),
+                const SizedBox(height: 15),
+
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    //elevation: 0,
+                    shadowColor: Colors.transparent,
+                    minimumSize: const Size(0, 20),
+                    backgroundColor: AppColors.background,
+                    foregroundColor: AppColors.primary,
+                    textStyle: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      fontFamily: 'Montserrat',
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ) ,
+
+                  onPressed: () {
+                    context.go('/products');
+                  },
+                  child: const Text('Shop Now'),
+
+                )
+
+            ],
+          ),),
         ),
       ),
       const SizedBox(height: 20),
@@ -75,7 +125,7 @@ class  HomeMainScreen extends StatelessWidget{
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text('Categories',
+          const Text('Category',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -89,8 +139,8 @@ class  HomeMainScreen extends StatelessWidget{
             child: const Text(
             'See All',
             style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
               color: Color(0xFF795548), // Deep Navy Blue
             ),
           ),
@@ -103,7 +153,7 @@ class  HomeMainScreen extends StatelessWidget{
               const Text(
                 'Flash Sale',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF795548), // Deep Navy Blue
                 ),

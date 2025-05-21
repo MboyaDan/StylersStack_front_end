@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:stylerstack/utils/constants.dart';
 import '../providers/product_provider.dart';
 import '../models/category_type.dart';
 
@@ -13,19 +14,23 @@ class CategoryListWidget extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: CategoryType.values.map((category) {
         return GestureDetector(
-          onTap: () {
+          onTap: () async {
             context.read<ProductProvider>().filterByCategory(category);
-            context.push('/category-products', extra: category);
+            await context.push('/category-products', extra: category);
           },
           child: Column(
             children: [
               CircleAvatar(
-                backgroundColor: const Color(0xFFD5C1B1),
-                child: Icon(category.icon, color: const Color(0xFF8C4C2F)),
+                backgroundColor: AppColors.background,
+                child: Icon(category.icon, color: AppColors.primary),
               ),
               const SizedBox(height: 4),
               Text(category.label,
-                  style: const TextStyle(color: Color(0xFF4E2A1E))),
+                  style: const TextStyle(
+                    color: AppColors.text,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),),
             ],
           ),
         );

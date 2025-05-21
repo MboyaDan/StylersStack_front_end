@@ -48,10 +48,10 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   }
 
   @override
-  void dispose() {
+  Future<void> dispose() async {
     _controller.dispose();
-    _searchSubject.close();
-    _categorySubject.close();
+    await _searchSubject.close();
+    await _categorySubject.close();
     super.dispose();
   }
 
