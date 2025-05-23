@@ -10,6 +10,7 @@ import 'package:stylerstack/providers/favorite_provider.dart';
 import 'package:stylerstack/providers/product_provider.dart';
 import 'package:stylerstack/providers/theme_provider.dart';
 import 'package:stylerstack/providers/payment_provider.dart';
+import 'package:stylerstack/services/category_service.dart';
 import 'package:stylerstack/services/connectivity_service.dart';
 import 'package:stylerstack/services/api_service.dart';
 import 'package:stylerstack/router/app_router.dart';
@@ -51,14 +52,24 @@ class StyleStackApp extends StatelessWidget {
 
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
 
+        ProxyProvider<ApiService, CategoryService>(
+          update: (_, apiService, __) => CategoryService(apiService),
+        ),
+
         //product provider
-        ChangeNotifierProxyProvider<ApiService, ProductProvider>(
-          create: (_) => ProductProvider(),
-          update: (_, apiService, provider) {
-            provider!.updateApiService(apiService);
-            return provider;
+    ChangeNotifierProxyProvider2<ApiService, CategoryService, ProductProvider>(
+    create: (context) {
+    final categoryService = Provider.of<CategoryService>(context, listen: false);
+    return ProductProvider(categoryService);
     },
+      update: (_, apiService, categoryService, previous) {
+      final provider = previous ?? ProductProvider(categoryService);
+      provider.updateApiService(apiService);
+      return provider;
+      },
     ),
+
+
 
         ChangeNotifierProvider(create: (_) => FavoriteProvider()),
 

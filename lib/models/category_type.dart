@@ -16,6 +16,11 @@ extension CategoryTypeExtension on CategoryType {
     }
   }
 
+  String get value {
+    // Backend string values (normalized slugs)
+    return toString().split('.').last;
+  }
+
   IconData get icon {
     switch (this) {
       case CategoryType.tshirt:
@@ -26,6 +31,17 @@ extension CategoryTypeExtension on CategoryType {
         return Icons.woman;
       case CategoryType.jacket:
         return Icons.man;
+    }
+  }
+
+  /// Safely parse a string into a CategoryType enum
+  static CategoryType? fromString(String value) {
+    try {
+      return CategoryType.values.firstWhere(
+            (e) => e.value == value.toLowerCase(),
+      );
+    } catch (_) {
+      return null;
     }
   }
 }

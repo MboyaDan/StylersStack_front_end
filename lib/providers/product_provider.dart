@@ -1,26 +1,18 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:stylerstack/models/category_type.dart';
+import 'package:stylerstack/models/product_model.dart';
 import 'package:stylerstack/services/api_service.dart';
+import 'package:stylerstack/services/category_service.dart';
 import 'package:stylerstack/services/product_service.dart';
-import '../models/category_type.dart';
-import '../models/product_model.dart';
 
-//combining provider with rxdart for searching and filtering products
 class ProductProvider with ChangeNotifier {
+  final CategoryService _categoryService;
+  late final ProductService _productService;
 
-  //lazy loading to support late injection
-  late ProductService _productService;
+  ProductProvider(this._categoryService);
 
-  ProductProvider();
-
-  Future<void> updateApiService(ApiService apiService) async {
-    _productService = ProductService(apiService);
-    // Load products after updating the service
-    await loadProducts();
-  }
-
-
-
+  List<CategoryType> _categories = [];
   List<ProductModel> _products = [];
   List<ProductModel> _filteredProducts = [];
   List<ProductModel> _searchedProducts = [];
@@ -29,12 +21,12 @@ class ProductProvider with ChangeNotifier {
   String _searchQuery = '';
   CategoryType? _selectedCategory;
 
-  // Expose a BehaviorSubject for reactive search results
   final BehaviorSubject<List<ProductModel>> _searchedProductsSubject =
   BehaviorSubject<List<ProductModel>>.seeded([]);
 
   // Getters
   List<ProductModel> get products => _products;
+  List<CategoryType> get categories => _categories;
   bool get isLoading => _isLoading;
   CategoryType? get selectedCategory => _selectedCategory;
   String get searchQuery => _searchQuery;
@@ -48,11 +40,30 @@ class ProductProvider with ChangeNotifier {
   List<ProductModel> get searchedProducts =>
       _searchQuery.isEmpty ? filteredProducts : _searchedProducts;
 
-  //  Rx stream of searched products
   Stream<List<ProductModel>> get searchedProductsStream =>
       _searchedProductsSubject.stream;
 
-  // Load products from backend
+  // Load API services and fetch categories + products
+  Future<void> updateApiService(ApiService apiService) async {
+    _productService = ProductService(apiService);
+    await Future.wait([
+      loadCategories(),
+      loadProducts(),
+    ]);
+  }
+
+  // Load categories from API
+  Future<void> loadCategories() async {
+    try {
+      _categories = await _categoryService.fetchCategories();
+    } catch (e) {
+      print('Error loading categories: $e');
+      _categories = []; // fallback
+    }
+    notifyListeners();
+  }
+
+  // Load products from API
   Future<void> loadProducts() async {
     _isLoading = true;
     notifyListeners();
@@ -60,41 +71,39 @@ class ProductProvider with ChangeNotifier {
       _products = await _productService.fetchProducts();
     } catch (e) {
       print('Error fetching products: $e');
+      _products = []; // fallback
     }
     _isLoading = false;
     _applyFilters();
     notifyListeners();
   }
 
-  // Set and apply category filter
+  // Filter by selected category
   void filterByCategory(CategoryType category) {
     _selectedCategory = category;
     _applyFilters();
     notifyListeners();
   }
 
-  //  Clear the category filter
   void clearCategoryFilter() {
     _selectedCategory = null;
     _applyFilters();
     notifyListeners();
   }
 
-  // Apply search query only
+  // Text-based search
   void searchProducts(String query) {
     _searchQuery = query;
     _applyFilters();
     notifyListeners();
   }
 
-  // Clear search
   void clearSearch() {
     _searchQuery = '';
     _applyFilters();
     notifyListeners();
   }
 
-  // Combined search + category filter
   void searchWithCategory({
     required String query,
     CategoryType? category,
@@ -117,33 +126,30 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
-  // Core logic for filtering products
+  // Core filter logic for both category + search
   void _applyFilters() {
-    // Filter by category first
     _filteredProducts = _selectedCategory == null
         ? _products
         : _products.where((product) =>
     product.category.toLowerCase() ==
-        _selectedCategory!.label.toLowerCase()).toList();
+        _selectedCategory!.value.toLowerCase()).toList();
 
-    // Then filter by search query
     if (_searchQuery.isEmpty) {
       _searchedProducts = [];
-      _searchedProductsSubject.add(_filteredProducts); // Show filtered category results
+      _searchedProductsSubject.add(_filteredProducts);
     } else {
       final lowerQuery = _searchQuery.toLowerCase();
       _searchedProducts = _filteredProducts
           .where((product) =>
           product.name.toLowerCase().contains(lowerQuery))
           .toList();
-      _searchedProductsSubject.add(_searchedProducts); // Update stream
+      _searchedProductsSubject.add(_searchedProducts);
     }
   }
 
-  // Dispose stream when provider is destroyed
   @override
-  void dispose() {
-    _searchedProductsSubject.close();
+  Future<void> dispose() async {
+    await _searchedProductsSubject.close();
     super.dispose();
   }
 }
