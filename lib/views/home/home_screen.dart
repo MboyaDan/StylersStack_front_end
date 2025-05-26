@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stylerstack/utils/constants.dart';
 import 'package:stylerstack/views/cart/my_cart_screen.dart';
+import 'package:stylerstack/views/favorite/favorite_screen.dart';
 import 'package:stylerstack/views/home/home_main_screen.dart';
 import 'package:stylerstack/views/profile/profile_screen.dart';
 
@@ -17,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     const HomeMainScreen(),
     const MyCartScreen(),
-    const Center(child: Text('favorite')),
+    const FavoriteScreen(),
     const ProfileScreen(),
   ];
 

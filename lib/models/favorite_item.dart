@@ -1,46 +1,20 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:hive/hive.dart';
 
+part 'favorite_item.freezed.dart';
 part 'favorite_item.g.dart';
 
-@HiveType(typeId: 1)   // ← give this typeId a unique number in your app
-class FavoriteItem extends HiveObject {
-  @HiveField(0)
-  final String productId;
+@freezed
+@HiveType(typeId: 1)
+class FavoriteItem with _$FavoriteItem {
+  const factory FavoriteItem({
+    @HiveField(0) required String productId,
+    @HiveField(1) required String productName,
+    @HiveField(2) required String imageUrl,
+    @HiveField(3) required double price,
+    @HiveField(4) required String userId,
+  }) = _FavoriteItem;
 
-  @HiveField(1)
-  final String productName;
-
-  @HiveField(2)
-  final String imageUrl;
-
-  @HiveField(3)
-  final double price;
-
-  @HiveField(4)
-  final String userId;   // still keep it for multi-user devices
-
-  FavoriteItem({
-    required this.productId,
-    required this.productName,
-    required this.imageUrl,
-    required this.price,
-    required this.userId,
-  });
-
-  factory FavoriteItem.fromJson(Map<String, dynamic> json, String userId) {
-    return FavoriteItem(
-      productId: json['productId'],
-      productName: json['productName'],
-      imageUrl: json['imageUrl'],
-      price: (json['price'] as num).toDouble(),
-      userId: userId,
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-    'productId': productId,
-    'productName': productName,
-    'imageUrl': imageUrl,
-    'price': price,
-  };
+  factory FavoriteItem.fromJson(Map<String, dynamic> json) =>
+      _$FavoriteItemFromJson(json);
 }

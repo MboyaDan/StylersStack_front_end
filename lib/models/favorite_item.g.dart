@@ -51,3 +51,25 @@ class FavoriteItemAdapter extends TypeAdapter<FavoriteItem> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+_$FavoriteItemImpl _$$FavoriteItemImplFromJson(Map<String, dynamic> json) =>
+    _$FavoriteItemImpl(
+      productId: json['productId'] as String,
+      productName: json['productName'] as String,
+      imageUrl: json['imageUrl'] as String,
+      price: (json['price'] as num).toDouble(),
+      userId: json['userId'] as String,
+    );
+
+Map<String, dynamic> _$$FavoriteItemImplToJson(_$FavoriteItemImpl instance) =>
+    <String, dynamic>{
+      'productId': instance.productId,
+      'productName': instance.productName,
+      'imageUrl': instance.imageUrl,
+      'price': instance.price,
+      'userId': instance.userId,
+    };

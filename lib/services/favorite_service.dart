@@ -12,7 +12,9 @@ class FavoriteService {
       final Response response = await _apiService.getRequest('/favorites');
 
       final List<dynamic> data = response.data;
-      return data.map((item) => FavoriteItem.fromJson(item, userId)).toList();
+      return data
+          .map((item) => FavoriteItem.fromJson(item).copyWith(userId: userId))
+          .toList();
     } on DioException catch (e) {
       throw Exception('Failed to load favorites: ${e.message}');
     }
@@ -21,7 +23,7 @@ class FavoriteService {
   /// Add a product to the favorites list
   Future<void> addFavorite(FavoriteItem favoriteItem) async {
     try {
-      final Response response = await _apiService.postRequest('favorites', favoriteItem.toJson());
+      final response = await _apiService.postRequest('favorites', favoriteItem.toJson());
 
       if (response.statusCode != 200) {
         throw Exception('Failed to add item to favorites: ${response.statusMessage}');
@@ -31,12 +33,10 @@ class FavoriteService {
     }
   }
 
-  /// Remove a product from the favorites list
+  /// Remove a product from the favorites list by product ID
   Future<void> removeFavorite(String productId) async {
     try {
-      final Response response = await _apiService.deleteRequest('favorites', data: {
-        'productId': productId,
-      });
+      final response = await _apiService.deleteRequest('favorites/$productId');
 
       if (response.statusCode != 200) {
         throw Exception('Failed to remove item from favorites: ${response.statusMessage}');

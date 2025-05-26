@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:path_provider/path_provider.dart';
+
 import 'package:stylerstack/models/cart_item.dart';
 import 'package:stylerstack/models/favorite_item.dart';
+
 import 'package:stylerstack/providers/address_provider.dart';
 import 'package:stylerstack/providers/auth_provider.dart';
 import 'package:stylerstack/providers/cart_provider.dart';
@@ -10,23 +12,31 @@ import 'package:stylerstack/providers/favorite_provider.dart';
 import 'package:stylerstack/providers/product_provider.dart';
 import 'package:stylerstack/providers/theme_provider.dart';
 import 'package:stylerstack/providers/payment_provider.dart';
+
 import 'package:stylerstack/services/category_service.dart';
 import 'package:stylerstack/services/connectivity_service.dart';
 import 'package:stylerstack/services/api_service.dart';
+import 'package:stylerstack/services/favorite_service.dart';
+
 import 'package:stylerstack/router/app_router.dart';
 import 'package:stylerstack/widgets/connectivity_banner.dart';
+
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:go_router/go_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   final appDir = await getApplicationDocumentsDirectory();
   Hive.init(appDir.path);
+
   Hive.registerAdapter(CartItemModelAdapter());
   Hive.registerAdapter(FavoriteItemAdapter());
+
   await Hive.openBox<CartItemModel>('cartBox');
   await Hive.openBox<FavoriteItem>('favoriteBox');
+
   await Firebase.initializeApp();
   runApp(const StyleStackApp());
 }
@@ -38,101 +48,125 @@ class StyleStackApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<AuthProvider>(
-          create: (_) => AuthProvider(),
-        ),
-
+        /// --- Auth & Router ---
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
         ProxyProvider<AuthProvider, GoRouter>(
-          update: (_, authProvider, __) => createRouter(authProvider),
+          update: (_, auth, __) => createRouter(auth),
         ),
 
+        /// --- ApiService ---
         ProxyProvider2<AuthProvider, GoRouter, ApiService>(
-          update: (_, authProvider, router, __) => ApiService(authProvider, router),
+          update: (_, auth, router, __) => ApiService(auth, router),
         ),
 
+        /// --- Theme ---
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
 
+        /// --- Category ---
         ProxyProvider<ApiService, CategoryService>(
-          update: (_, apiService, __) => CategoryService(apiService),
+          update: (_, api, __) => CategoryService(api),
         ),
 
-        //product provider
-    ChangeNotifierProxyProvider2<ApiService, CategoryService, ProductProvider>(
-    create: (context) {
-    final categoryService = Provider.of<CategoryService>(context, listen: false);
-    return ProductProvider(categoryService);
-    },
-      update: (_, apiService, categoryService, previous) {
-      final provider = previous ?? ProductProvider(categoryService);
-      provider.updateApiService(apiService);
-      return provider;
-      },
-    ),
+        /// --- Product Provider ---
+        ChangeNotifierProxyProvider2<ApiService, CategoryService, ProductProvider>(
+          create: (context) {
+            final catService = context.read<CategoryService>();
+            return ProductProvider(catService);
+          },
+          update: (_, api, catService, previous) {
+            final provider = previous ?? ProductProvider(catService);
+            provider.updateApiService(api);
+            return provider;
+          },
+        ),
 
 
 
-        ChangeNotifierProvider(create: (_) => FavoriteProvider()),
+        /// --- FavoriteService (depends on ApiService) ---
+        ProxyProvider<ApiService, FavoriteService>(
+          update: (_, api, __) => FavoriteService(api),
+        ),
 
+        Provider<Box<FavoriteItem>>(
+          create: (_) => Hive.box<FavoriteItem>('favoriteBox'),
+        ),
+
+
+        /// --- FavoriteProvider (depends on FavoriteService + Hive box) ---
+        ChangeNotifierProxyProvider2<FavoriteService, Box<FavoriteItem>, FavoriteProvider>(
+          create: (context) {
+            final favoriteService = Provider.of<FavoriteService>(context, listen: false);
+            final box = Provider.of<Box<FavoriteItem>>(context, listen: false);
+            return FavoriteProvider(favoriteService, box);
+          },
+          update: (context, favoriteService, box, previous) {
+            final provider = previous ?? FavoriteProvider(favoriteService, box);
+            provider.updateService(favoriteService);
+            return provider;
+          },
+        ),
+
+
+
+
+        /// --- Payment ---
         ProxyProvider<ApiService, PaymentProvider>(
-          update: (_, apiService, __) => PaymentProvider(apiService),
+          update: (_, api, __) => PaymentProvider(api),
         ),
 
-        ///cart provider
+        /// --- Cart ---
         ChangeNotifierProxyProvider<ApiService, CartProvider>(
           create: (context) => CartProvider(context.read<ApiService>()),
-          update: (context, apiService, previous) =>
-              CartProvider(apiService),
+          update: (_, api, __) => CartProvider(api),
         ),
 
+        /// --- Address ---
         ProxyProvider<ApiService, AddressProvider>(
-          update: (_, apiService, __) => AddressProvider(apiService),
+          update: (_, api, __) => AddressProvider(api),
         ),
 
+        /// --- Connectivity ---
         Provider<ConnectivityService>(
           create: (_) => ConnectivityService(),
-          dispose: (_, service) => service.dispose(),
+          dispose: (_, svc) => svc.dispose(),
         ),
       ],
       child: Consumer2<AuthProvider, GoRouter>(
-        builder: (context, authProvider, router, _) {
+        builder: (context, auth, router, _) {
           return Consumer<ConnectivityService>(
-            builder: (context, connectivityService, _) {
-              return StreamBuilder<bool>(
-                stream: connectivityService.internetStatusStream,
-                builder: (context, snapshot) {
-                  final hasInternet = snapshot.data ?? true;
-
-                  return MaterialApp.router(
-                    routerConfig: router,
-                    debugShowCheckedModeBanner: false,
-                    themeMode: context.watch<ThemeProvider>().isDarkMode
-                        ? ThemeMode.dark
-                        : ThemeMode.light,
-                    darkTheme: ThemeData.dark(),
-                    theme: ThemeData.light(),
-                    builder: (context, child) {
-                      _listenForLogout(context, authProvider);
-
-                      return Stack(
-                        children: [
-                          child!,
-                          ConnectivityBanner(hasInternet: hasInternet),
-                        ],
-                      );
-                    },
-                  );
-                },
-              );
-            },
+            builder: (context, conn, _) => StreamBuilder<bool>(
+              stream: conn.internetStatusStream,
+              builder: (context, snap) {
+                final hasInternet = snap.data ?? true;
+                return MaterialApp.router(
+                  routerConfig: router,
+                  debugShowCheckedModeBanner: false,
+                  themeMode: context.watch<ThemeProvider>().isDarkMode
+                      ? ThemeMode.dark
+                      : ThemeMode.light,
+                  darkTheme: ThemeData.dark(),
+                  theme: ThemeData.light(),
+                  builder: (context, child) {
+                    _listenForLogout(context, auth);
+                    return Stack(
+                      children: [
+                        child!,
+                        ConnectivityBanner(hasInternet: hasInternet),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
           );
         },
       ),
     );
   }
 
-  void _listenForLogout(BuildContext context, AuthProvider authProvider) {
-    authProvider.addListener(() {
-      if (authProvider.isLoggedOut) {
+  void _listenForLogout(BuildContext context, AuthProvider auth) {
+    auth.addListener(() {
+      if (auth.isLoggedOut) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('You have been logged out.'),
