@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../providers/product_provider.dart';
-import '../../providers/favorite_provider.dart';
-import '../../models/favorite_item.dart';
-import '../../widgets/product_card.dart';
+import 'package:stylerstack/providers/product_provider.dart';
+import 'package:stylerstack/providers/favorite_provider.dart';
+import 'package:stylerstack/models/favorite_item.dart';
+import 'package:stylerstack/widgets/product_card.dart';
 
 class ProductListScreen extends StatelessWidget {
   const ProductListScreen({super.key});

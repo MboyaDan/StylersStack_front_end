@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stylerstack/models/cart_item.dart';
 import 'package:stylerstack/models/product_model.dart';
-import '../../providers/cart_provider.dart';
+import 'package:stylerstack/providers/cart_provider.dart';
 
 class ProductDetailsPage extends StatefulWidget {
   const ProductDetailsPage({required this.product, super.key});

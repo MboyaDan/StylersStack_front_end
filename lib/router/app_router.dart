@@ -5,6 +5,7 @@ import 'package:stylerstack/views/auth/login_screen.dart';
 import 'package:stylerstack/views/auth/registration_screen.dart';
 import 'package:stylerstack/views/cart/payment_sucess_screen.dart';
 import 'package:stylerstack/views/category/category_product_Screen.dart';
+import 'package:stylerstack/views/favorite/favorite_screen.dart';
 import 'package:stylerstack/views/home/home_screen.dart';
 import 'package:stylerstack/views/home/splash_screen.dart';
 import 'package:stylerstack/providers/auth_provider.dart';
@@ -67,6 +68,10 @@ GoRouter createRouter(AuthProvider authProvider) {
         builder: (context, state) => const ProductListScreen(),
       ),
       GoRoute(
+        path: '/favorites',
+        builder: (context, state) => const FavoriteScreen(),
+      ),
+      GoRoute(
         path: '/product-details',
         builder: (context, state) {
           final product = state.extra as ProductModel;
@@ -118,6 +123,7 @@ GoRouter createRouter(AuthProvider authProvider) {
         path: '/payment-success',
         builder: (context, state) => const PaymentSuccessScreen(),
       ),
+
     ],
   );
 }

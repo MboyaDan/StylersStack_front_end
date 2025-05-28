@@ -57,7 +57,6 @@ class FavoriteProvider with ChangeNotifier {
       unawaited(_favoriteService.addFavorite(favWithUid));
     } catch (e, st) {
       debugPrint('Error adding favorite: $e\n$st');
-      // Optional: Show toast/snackbar feedback
     }
   }
 

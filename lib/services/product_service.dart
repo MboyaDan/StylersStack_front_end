@@ -21,7 +21,8 @@ class ProductService {
   /// Fetch single product details by ID
   Future<ProductModel> fetchProductDetails(String productId) async {
     try {
-      final Response response = await _apiService.getRequest('products/$productId');
+      final Response response =
+      await _apiService.getRequest('/products/$productId');
       final data = response.data;
 
       return ProductModel.fromJson(data);

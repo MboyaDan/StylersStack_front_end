@@ -1,29 +1,54 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/adapters.dart';
-import 'package:stylerstack/services/api_service.dart';
-import '../models/cart_item.dart';
-import '../services/cart_service.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../models/cart_item.dart';
+import '../services/api_service.dart';
+import '../services/cart_service.dart';
+
 class CartProvider with ChangeNotifier {
+  // ────────── Services ──────────
   final CartService _cartService;
-  CartProvider(ApiService apiService) : _cartService = CartService(apiService);
+  CartProvider(ApiService api) : _cartService = CartService(api) {
+    // listen for background changes to the Hive box
+    _cartBox.watch().listen((_) => notifyListeners());
+  }
 
+  // ────────── Hive ──────────
   final Box<CartItemModel> _cartBox = Hive.box<CartItemModel>('cartBox');
-  String? _appliedPromoCode;
-  double _discountPercentage = 0.0;
 
+  // ────────── PromoCode ──────────
+  String? _appliedPromoCode;
+  double  _discountPercentage = 0.0;
+
+  // ────────── Loading flag ──────────
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  List<CartItemModel> get cartItems => _cartBox.values.toList();
+  // ────────── Auth helper ──────────
+  String? get _uid => FirebaseAuth.instance.currentUser?.uid;
 
-  String? get _userId => FirebaseAuth.instance.currentUser?.uid;
+  // ────────── Public getters ──────────
+  List<CartItemModel> get cartItems =>
+      _uid == null
+          ? []
+          : _cartBox.values.where((e) => e.userId == _uid).toList();
+
+  double get totalCartPrice {
+    final total =
+    cartItems.fold(0.0, (sum, item) => sum + item.totalPrice);
+    return total - (total * _discountPercentage);
+  }
+
+  // ────────── Composite key helper ──────────
+  String _key(String uid, String productId) => '${uid}_$productId';
+
+  /*──────────────────── Promo Code ────────────────────*/
 
   void applyPromoCode(String code) {
     if (code.trim().toLowerCase() == 'styler10') {
       _appliedPromoCode = code;
-      _discountPercentage = 0.1;
+      _discountPercentage = 0.10;
     } else {
       _appliedPromoCode = null;
       _discountPercentage = 0.0;
@@ -31,18 +56,20 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /*──────────────────── API ↔ Hive sync ────────────────────*/
+
   Future<void> fetchCartFromApi() async {
-    final userId = _userId;
-    if (userId == null) return;
+    final uid = _uid;
+    if (uid == null) return;
 
     _isLoading = true;
     notifyListeners();
 
     try {
-      final items = await _cartService.fetchCartItems(userId: userId);
-      await _cartBox.clear();
-      for (var item in items) {
-        _cartBox.put(item.productId, item);
+      final items = await _cartService.fetchCartItems(userId: uid);
+      await _cartBox.clear();                 // wipe local cache
+      for (final item in items) {
+        await _cartBox.put(_key(uid, item.productId), item);
       }
     } catch (e) {
       debugPrint('Fetch cart error: $e');
@@ -52,65 +79,85 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addToCart({required String productId, required String productName, required double productPrice, required String productImageUrl, int quantity = 1}) async {
-    final userId = _userId;
-    if (userId == null) return;
+  Future<void> addToCart({
+    required String productId,
+    required String productName,
+    required double productPrice,
+    required String productImageUrl,
+    int quantity = 1,
+  }) async {
+    final uid = _uid;
+    if (uid == null) return;
+
+    final hiveKey = _key(uid, productId);
 
     try {
-      await _cartService.addItemToCart(productId: productId, quantity: quantity);
+      // optimistic UI: update local first
+      final existing = _cartBox.get(hiveKey);
+      final newQty   = existing == null ? quantity : existing.quantity + quantity;
 
-      final item = CartItemModel(
-        userId: userId,
-        productId: productId,
-        productName: productName,
-        productPrice: productPrice,
-        productImageUrl: productImageUrl,
-        quantity: quantity,
+      await _cartBox.put(
+        hiveKey,
+        CartItemModel(
+          userId: uid,
+          productId: productId,
+          productName: productName,
+          productPrice: productPrice,
+          productImageUrl: productImageUrl,
+          quantity: newQty,
+        ),
       );
-
-      _cartBox.put(productId, item);
       notifyListeners();
+
+      // fire-&-forget API call
+      await _cartService.addItemToCart(productId: productId, quantity: quantity);
     } catch (e) {
       debugPrint('Add to cart error: $e');
     }
   }
 
   Future<void> removeFromCart(String productId) async {
-    final userId = _userId;
-    if (userId == null) return;
+    final uid = _uid;
+    if (uid == null) return;
+
+    final hiveKey = _key(uid, productId);
 
     try {
-      await _cartService.removeItemFromCart(productId: productId);
-      _cartBox.delete(productId);
+      await _cartBox.delete(hiveKey);
       notifyListeners();
+      await _cartService.removeItemFromCart(productId: productId);
     } catch (e) {
       debugPrint('Remove from cart error: $e');
     }
   }
 
-  Future<void> updateCartItem(String productId, int newQuantity) async {
-    try {
-      await _cartService.updateItemQuantity(productId: productId, quantity: newQuantity);
+  Future<void> updateCartItem(String productId, int newQty) async {
+    final uid = _uid;
+    if (uid == null) return;
 
-      final item = _cartBox.get(productId);
-      if (item != null) {
-        item.quantity = newQuantity;
-        await _cartBox.put(productId, item);
-        notifyListeners();
-      }
+    final hiveKey = _key(uid, productId);
+
+    try {
+      final item = _cartBox.get(hiveKey);
+      if (item == null) return;
+
+      item.quantity = newQty;
+      await _cartBox.put(hiveKey, item);
+      notifyListeners();
+
+      await _cartService.updateItemQuantity(productId: productId, quantity: newQty);
     } catch (e) {
       debugPrint('Update cart error: $e');
     }
   }
 
-  double get totalCartPrice {
-    final total = _cartBox.values.fold(0.0, (sum, item) => sum + item.totalPrice);
-    return total - (total * _discountPercentage);
-  }
-
   Future<void> clearCart() async {
-    await _cartBox.clear();
+    final uid = _uid;
+    if (uid == null) return;
+
+    final keys = _cartBox.keys.where((k) => k.toString().startsWith('${uid}_'));
+    await _cartBox.deleteAll(keys);
     notifyListeners();
+    // Optionally call backend endpoint to clear entire cart
   }
 }
-

@@ -146,10 +146,21 @@ class ProductProvider with ChangeNotifier {
       _searchedProductsSubject.add(_searchedProducts);
     }
   }
+  Future<ProductModel> fetchProductById(String id) async {
+    try {
+      return await _productService.fetchProductDetails(id);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching product by ID: $e');
+      }
+      rethrow;
+    }
+  }
 
   @override
   Future<void> dispose() async {
     await _searchedProductsSubject.close();
     super.dispose();
   }
+
 }
