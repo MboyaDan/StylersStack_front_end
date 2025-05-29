@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:stylerstack/services/payment_service.dart';
-
 import '../models/payment_model.dart';
 import '../services/api_service.dart';
 
 class PaymentProvider extends ChangeNotifier {
-  final PaymentService _paymentService;
-  PaymentProvider(ApiService apiService) : _paymentService = PaymentService(apiService);
+  late PaymentService _paymentService;
+
+  PaymentProvider(ApiService apiService) {
+    updateApi(apiService);
+  }
+
+  void updateApi(ApiService apiService) {
+    _paymentService = PaymentService(apiService);
+  }
 
   String? _selectedMethod;
   bool _isLoading = false;
@@ -19,7 +25,7 @@ class PaymentProvider extends ChangeNotifier {
   PaymentModel? get payment => _payment;
   String? get error => _error;
 
-  // Select a method
+  // Set payment method
   void setPaymentMethod(String method) {
     _selectedMethod = method;
     notifyListeners();

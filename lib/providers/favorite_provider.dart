@@ -29,6 +29,8 @@ class FavoriteProvider with ChangeNotifier {
     _box.watch().listen((_) => _loadFromCache());
   }
 
+  int get favoriteCount => _favorites.length;
+
   /// Optional: allows swapping service if needed (used in Provider `update`)
   void updateService(FavoriteService service) {
     _favoriteService = service;

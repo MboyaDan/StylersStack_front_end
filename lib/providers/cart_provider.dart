@@ -39,7 +39,9 @@ class CartProvider with ChangeNotifier {
     cartItems.fold(0.0, (sum, item) => sum + item.totalPrice);
     return total - (total * _discountPercentage);
   }
+int get cartCount => cartItems.fold(0,(sum,item)=> sum + item.quantity);
 
+  //int get cartUniqueCount => cartItems.length;
   // ────────── Composite key helper ──────────
   String _key(String uid, String productId) => '${uid}_$productId';
 

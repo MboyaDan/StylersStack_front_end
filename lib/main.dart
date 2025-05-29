@@ -19,6 +19,7 @@ import 'package:stylerstack/services/api_service.dart';
 import 'package:stylerstack/services/favorite_service.dart';
 
 import 'package:stylerstack/router/app_router.dart';
+import 'package:stylerstack/widgets/auth_feedback_listener.dart';
 import 'package:stylerstack/widgets/connectivity_banner.dart';
 
 import 'package:provider/provider.dart';
@@ -110,9 +111,12 @@ class StyleStackApp extends StatelessWidget {
 
 
         /// --- Payment ---
-        ProxyProvider<ApiService, PaymentProvider>(
-          update: (_, api, __) => PaymentProvider(api),
+        /// --- Payment ---
+        ChangeNotifierProxyProvider<ApiService, PaymentProvider>(
+          create: (context) => PaymentProvider(context.read<ApiService>()),
+          update: (_, api, previous) => previous!..updateApi(api),
         ),
+
 
         /// --- Cart ---
         ChangeNotifierProxyProvider<ApiService, CartProvider>(
@@ -147,12 +151,15 @@ class StyleStackApp extends StatelessWidget {
                   darkTheme: ThemeData.dark(),
                   theme: ThemeData.light(),
                   builder: (context, child) {
-                    _listenForLogout(context, auth);
-                    return Stack(
+                    return AuthFeedbackListener(
+                    child: Stack(
                       children: [
                         child!,
-                        ConnectivityBanner(hasInternet: hasInternet),
-                      ],
+                        ConnectivityBanner(
+                          hasInternet: hasInternet,
+                    ),
+                    ],
+                    ),
                     );
                   },
                 );
@@ -164,16 +171,4 @@ class StyleStackApp extends StatelessWidget {
     );
   }
 
-  void _listenForLogout(BuildContext context, AuthProvider auth) {
-    auth.addListener(() {
-      if (auth.isLoggedOut) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('You have been logged out.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    });
-  }
 }

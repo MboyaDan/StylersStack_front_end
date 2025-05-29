@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../widgets/cart_item_card.dart';
@@ -62,7 +63,7 @@ class MyCartScreen extends StatelessWidget {
                   backgroundColor: AppColors.background,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
-                onPressed: () async => Navigator.pushNamed(context, '/checkout'),
+                onPressed: ()  async => context.push('/checkout'),
                 child: const Text("Checkout"),
               ),
             ],
