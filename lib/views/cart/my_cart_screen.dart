@@ -36,7 +36,8 @@ class MyCartScreen extends StatelessWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+       crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
             controller: promoController,
@@ -47,7 +48,14 @@ class MyCartScreen extends StatelessWidget {
                   provider.applyPromoCode(promoController.text);
                   FocusScope.of(context).unfocus();
                 },
-                child: const Text("Apply"),
+                child:
+                const Text("Apply",
+                  style: TextStyle(
+                    color: AppColors.text,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ),
@@ -64,7 +72,13 @@ class MyCartScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
                 onPressed: ()  async => context.push('/checkout'),
-                child: const Text("Checkout"),
+                child: const Text("Checkout",
+                  style: TextStyle(
+                    color: AppColors.text,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),

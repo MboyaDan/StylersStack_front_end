@@ -57,7 +57,7 @@ class PaymentService {
     }
   }
 
-  /// Refund payment (optional)
+  /// Refund payment
   Future<bool> refundPayment({
     required String paymentIntentId,
     required double amount,

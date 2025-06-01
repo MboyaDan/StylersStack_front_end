@@ -39,5 +39,6 @@ class OrderSummaryWidget extends StatelessWidget {
         ],
       ),
     );
+
   }
 }

@@ -125,9 +125,31 @@ class StyleStackApp extends StatelessWidget {
         ),
 
         /// --- Address ---
-        ProxyProvider<ApiService, AddressProvider>(
-          update: (_, api, __) => AddressProvider(api),
+        ChangeNotifierProxyProvider2<AuthProvider, ApiService, AddressProvider>(
+          create: (context) {
+            final auth = context.read<AuthProvider>();
+            final api = context.read<ApiService>();
+            final provider = AddressProvider(api);
+
+            final uid = auth.user?.uid;
+            if (uid != null) {
+              provider.fetchAddress(uid);
+            }
+
+            return provider;
+          },
+          update: (context, auth, api, previous) {
+            final provider = previous ?? AddressProvider(api);
+            final uid = auth.user?.uid;
+
+            if (uid != null) {
+              provider.fetchAddress(uid);
+            }
+
+            return provider;
+          },
         ),
+
 
         /// --- Connectivity ---
         Provider<ConnectivityService>(

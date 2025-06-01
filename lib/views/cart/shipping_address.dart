@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stylerstack/providers/address_provider.dart';
+import 'package:stylerstack/utils/constants.dart';
+import '../../providers/auth_provider.dart';
+
 class ShippingAddressScreen extends StatefulWidget {
   const ShippingAddressScreen({super.key});
 
@@ -12,18 +15,33 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _addressController = TextEditingController();
   bool _isLoading = false;
-  //fetch the address when the screen loads
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if  (mounted ) {
-      await context.read<AddressProvider>().fetchAddress();
+      try {
+        final authProvider = context.read<AuthProvider>();
+        final uid = authProvider.user?.uid;
+        if (uid != null) {
+          final provider = context.read<AddressProvider>();
+          await provider.fetchAddress(uid);
+          if (mounted) {
+            _addressController.text = provider.address?.address ?? '';
+          }
+        } else {
+          throw 'User not logged in';
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to fetch address: $e')),
+          );
+        }
       }
     });
   }
-  //manage memory leaks
+
   @override
   void dispose() {
     _addressController.dispose();
@@ -33,24 +51,36 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
   Future<void> _saveAddress() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-
-      // Access provider BEFORE the async gap
       final addressProvider = context.read<AddressProvider>();
+      final uid = context.read<AuthProvider>().user?.uid;
 
-      await addressProvider.editAddress(_addressController.text);
-
-      if (!mounted) return;
-
-      setState(() => _isLoading = false);
-      Navigator.pop(context);
+      try {
+        if (uid != null) {
+          await addressProvider.editAddress(_addressController.text, uid);
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Address saved successfully')),
+          );
+          Navigator.pop(context);
+        } else {
+          throw 'User ID not found';
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to save address: $e')),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
     final addressProvider = context.watch<AddressProvider>();
-    final currentAddress = addressProvider.address?.address??'No address saved yet';
+    final currentAddress = addressProvider.address?.address ?? 'No address saved yet';
 
     return Scaffold(
       appBar: AppBar(title: const Text("Shipping Address")),
@@ -60,35 +90,48 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-              "Current Address:",
-              style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
-          ),
-              Text(
-                currentAddress,
-              style: const TextStyle(fontSize: 16,color:Colors.black54),),
+              const Text("Current Address:",
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text(currentAddress,
+                  style: const TextStyle(fontSize: 16, color: Colors.black54)),
               const SizedBox(height: 20),
               TextFormField(
                 controller: _addressController,
                 decoration: const InputDecoration(
-                  labelText: "Enter your address",
-                  border: OutlineInputBorder(),
+                  hintText: "Enter your address",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
+                  prefixIcon: Icon(Icons.location_on),
+                  contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  filled: true,
+                  fillColor: Colors.white,
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.brown, width: 2),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.brown, width: 2),
+                  ),
                 ),
                 validator: (value) =>
                 value == null || value.isEmpty ? "Please enter your address" : null,
               ),
               const SizedBox(height: 20),
               _isLoading
-              ?const CircularProgressIndicator()
-              :ElevatedButton(
-                onPressed: () => _saveAddress,
+                  ? const Center(child: CircularProgressIndicator())
+                  : ElevatedButton(
+                onPressed: _saveAddress,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFDCC6B0),
+                  backgroundColor: AppColors.accent,
                   minimumSize: const Size.fromHeight(50),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text("Save Address"),
+                child: const Text("Save Address",
+                    style: TextStyle(
+                        color: AppColors.text,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold)),
               ),
             ],
           ),

@@ -32,14 +32,14 @@ class ProductModel {
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
-    double _toDouble(num? v) => (v ?? 0).toDouble();
+    double toDouble(num? v) => (v ?? 0).toDouble();
 
     return ProductModel(
       id: json['id'].toString(),
       name: json['name'] ?? '',
       images: List<String>.from(json['images'] ?? const []),
-      price: _toDouble(json['price']),
-      discount: json['discount'] == null ? null : _toDouble(json['discount']),
+      price: toDouble(json['price']),
+      discount: json['discount'] == null ? null : toDouble(json['discount']),
       category: json['category'] is Map
           ? (json['category']['name'] ?? '')
           : (json['category'] ?? ''),

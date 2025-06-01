@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:stylerstack/utils/constants.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
+import 'package:stylerstack/providers/address_provider.dart';
+import 'package:stylerstack/widgets/section_card_widget.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -15,106 +17,146 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool _isSigningOut = false;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final uid = context.read<AuthProvider>().user?.uid;
+      if (uid != null) {
+        await context.read<AddressProvider>().fetchAddress(uid);
+      }
+    });
+  }
+
   Future<void> _handleLogout(AuthProvider authProvider) async {
     setState(() => _isSigningOut = true);
     await authProvider.signOut();
-    if (mounted) {
-      context.go('/login');
-    }
+    if (mounted) context.go('/login');
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    final authProvider = context.watch<AuthProvider>();
+    final themeProvider = context.watch<ThemeProvider>();
+    final addressProvider = context.watch<AddressProvider>();
 
     final user = authProvider.user;
+    final displayName = user?.email?.split('@').first ?? 'User';
     final email = user?.email ?? 'No email';
-    final displayName = email.split('@').first; // simple name fallback
+    final currentAddress = addressProvider.address?.address;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
-        // Removed logout icon button here to keep only one logout button
+        title: const Text('My Profile'),
+        centerTitle: true,
       ),
       body: _isSigningOut
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32),
+          : SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CircleAvatar(
-              radius: 48,
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Text(
-                displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
-                style: TextStyle(
-                  fontSize: 48,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              displayName,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              email,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 32),
-
-            // Theme toggle card for better presentation
+            /// --- Profile Info Card ---
             Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 3,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.all(20),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Dark Mode',
-                      style: Theme.of(context).textTheme.titleMedium,
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                      child: Text(
+                        displayName[0].toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 32,
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
+                      ),
                     ),
-                    Switch(
-                      value: themeProvider.isDarkMode,
-                      onChanged: (_) => themeProvider.toggleTheme(),
-                      activeColor: Theme.of(context).colorScheme.primary,
-                    ),
+                    const SizedBox(width: 20),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          displayName,
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          email,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
+                        ),
+                      ],
+                    )
                   ],
                 ),
               ),
             ),
 
-            // You can add more user settings here...
+            const SizedBox(height: 30),
 
-            const Spacer(),
-
-            ElevatedButton.icon(
-              onPressed: _isSigningOut ? null : () async => _handleLogout(authProvider),
-              icon: const Icon(Icons.logout,
-                color: Colors.white,
+            /// --- Shipping Address Section ---
+            SectionCard(
+              title: 'Shipping Address',
+              action: TextButton(
+                onPressed: () => context.push('/shipping-address'),
+                child: const Text("Edit"),
               ),
-              label: const Text('Logout',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18
-                  ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor:AppColors.primary,
-                minimumSize: const Size(170, 50),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              child: Text(
+                currentAddress ?? 'No address saved yet. Add one now!',
+                style: TextStyle(
+                  color: currentAddress != null ? Colors.black87 : Colors.red,
+                  fontStyle: currentAddress == null ? FontStyle.italic : FontStyle.normal,
+                ),
               ),
             ),
+            const SizedBox(height: 20),
+            SectionCard(
+              title: 'Appearance',
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Dark Mode',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  Switch(
+                    value: themeProvider.isDarkMode,
+                    onChanged: (_) => themeProvider.toggleTheme(),
+                    activeColor: Theme.of(context).colorScheme.primary,
+                  ),
+                ],
+              ),
+            ),
+
+
+            const SizedBox(height: 40),
+
+            /// --- Logout Button ---
+            ElevatedButton.icon(
+              onPressed: _isSigningOut ? null : () => _handleLogout(authProvider),
+              icon: const Icon(Icons.logout,
+                color: AppColors.text,
+              ),
+              label: const Text(
+                'Logout',
+                style: TextStyle(
+                  color: AppColors.text,
+
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.background,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 4,
+                shadowColor: Colors.black45,
+              ),
+            )
           ],
         ),
       ),
