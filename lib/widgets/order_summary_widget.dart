@@ -24,17 +24,17 @@ class OrderSummaryWidget extends StatelessWidget {
           const SizedBox(height: 10),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             const Text("Items Total"),
-            Text("\$${total.toStringAsFixed(2)}"),
+            Text(" Ksh ${total.toStringAsFixed(2)}"),
           ]),
           const SizedBox(height: 6),
           const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Text("Shipping"),
-            Text("\$0.00"), // Assume free for now
+            Text(" Ksh 0.00"), // Assume free for now
           ],),
           const Divider(),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             const Text("Total", style: TextStyle(fontWeight: FontWeight.bold)),
-            Text("\$${total.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text("ksh ${total.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.bold)),
           ],),
         ],
       ),

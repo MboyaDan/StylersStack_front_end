@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:stylerstack/models/category_type.dart';
 import 'package:stylerstack/views/auth/login_screen.dart';
 import 'package:stylerstack/views/auth/registration_screen.dart';
+import 'package:stylerstack/views/cart/mpesa_input_screen.dart';
 import 'package:stylerstack/views/cart/payment_sucess_screen.dart';
 import 'package:stylerstack/views/category/category_product_Screen.dart';
 import 'package:stylerstack/views/favorite/favorite_screen.dart';
@@ -66,6 +67,9 @@ GoRouter createRouter(AuthProvider authProvider) {
       GoRoute(
         path: '/products',
         builder: (context, state) => const ProductListScreen(),
+      ),
+      GoRoute(path: '/mpesa-phone-input',
+        builder: (context, state) => const MpesaPhoneInputScreen(),
       ),
       GoRoute(
         path: '/favorites',

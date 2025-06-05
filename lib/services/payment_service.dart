@@ -12,29 +12,34 @@ class PaymentService {
     required String currency,
     required String paymentMethod,
     required String orderId,
+    String? phoneNumber,
   }) async {
-    try {
-      final Response response = await _apiService.postRequest(
-        'payment/initiate',
-        {
-          'amount': amount,
-          'currency': currency,
-          'payment_method': paymentMethod,
-          'order_id': orderId,
-        },
-      );
+    final body = {
+      'amount': amount,
+      'currency': currency,
+      'payment_method': paymentMethod,
+      'order_id': orderId,
+      'phone_number': phoneNumber,
+    };
 
+    if (paymentMethod.toLowerCase() == 'mpesa' && phoneNumber != null) {
+      body['phone_number'] = phoneNumber;
+    }
+
+    try {
+      final Response response = await _apiService.postRequest('/payment/initiate', body);
       return PaymentModel.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception('Failed to initiate payment: ${e.message}');
     }
   }
 
+
   /// Confirm payment
   Future<bool> confirmPayment({required String paymentIntentId}) async {
     try {
       final Response response = await _apiService.postRequest(
-        'payment/confirm',
+        '/payment/confirm',
         {
           'payment_intent_id': paymentIntentId,
         },
@@ -64,7 +69,7 @@ class PaymentService {
   }) async {
     try {
       final Response response = await _apiService.postRequest(
-        'payment/refund',
+        '/payment/refund',
         {
           'payment_intent_id': paymentIntentId,
           'amount': amount,

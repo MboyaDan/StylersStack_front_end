@@ -14,6 +14,9 @@ class PaymentProvider extends ChangeNotifier {
     _paymentService = PaymentService(apiService);
   }
 
+  String? _phoneNumber;
+  String? get phoneNumber => _phoneNumber;
+
   String? _selectedMethod;
   bool _isLoading = false;
   PaymentModel? _payment;
@@ -36,6 +39,8 @@ class PaymentProvider extends ChangeNotifier {
     required double amount,
     required String currency,
     required String orderId,
+    required String paymentMethod,
+    String? phoneNumber,
   }) async {
     _isLoading = true;
     _error = null;
@@ -45,14 +50,44 @@ class PaymentProvider extends ChangeNotifier {
       final result = await _paymentService.initiatePayment(
         amount: amount,
         currency: currency,
-        paymentMethod: _selectedMethod!,
+        paymentMethod:paymentMethod,
         orderId: orderId,
+        phoneNumber: phoneNumber,
       );
       _payment = result;
     } catch (e) {
       _error = e.toString();
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+
+  void setPhoneNumber(String number) {
+    _phoneNumber = number;
+    notifyListeners();
+  }
+
+  Future<void> checkPaymentStatus(String orderId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+  }
+
+  Future<void> refundPayment(String paymentIntentId, double amount) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+  }
+  Future<void> confirmPayment(String paymentIntentId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+  }
+  void updatePaymentStatusFromFCM(String orderId, String status) {
+    if (_payment?.orderId == orderId) {
+      _payment = _payment?.copyWith(status: status);
       notifyListeners();
     }
   }

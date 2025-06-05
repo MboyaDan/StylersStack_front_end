@@ -37,6 +37,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
       return;
     }
+//special flow for mpesa
+    if (paymentProvider.selectedMethod == 'mpesa') {
+      if (paymentProvider.phoneNumber == null || paymentProvider.phoneNumber!.isEmpty) {
+        final result = await context.push<bool>('/mpesa-phone-input') ?? false;
+        if (!result || paymentProvider.phoneNumber == null || paymentProvider.phoneNumber!.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Mpesa phone number is required.')),
+          );
+          return;
+        }
+      }
+    }
 
     // --- perform payment ---
     setState(() => _isLoading = true);
@@ -45,6 +57,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         amount   : cartProvider.totalCartPrice,
         currency : 'Ksh',
         orderId  : 'ORD-${DateTime.now().millisecondsSinceEpoch}',
+        paymentMethod: paymentProvider.selectedMethod!.toLowerCase(),
       );
 
       if (paymentProvider.payment != null) {

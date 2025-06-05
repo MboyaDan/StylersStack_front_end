@@ -1,35 +1,20 @@
-class PaymentModel {
-  final String paymentIntentId;
-  final String orderId;
-  final double amount;
-  final String currency;
-  final String status; // e.g., 'pending', 'completed', 'failed'
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  PaymentModel({
-    required this.paymentIntentId,
-    required this.orderId,
-    required this.amount,
-    required this.currency,
-    required this.status,
-  });
+part 'payment_model.freezed.dart';
+part 'payment_model.g.dart';
 
-  factory PaymentModel.fromJson(Map<String, dynamic> json) {
-    return PaymentModel(
-      paymentIntentId: json['payment_intent_id'] ?? '',
-      orderId: json['order_id'] ?? '',
-      amount: (json['amount'] ?? 0).toDouble(),
-      currency: json['currency'] ?? 'Ksh',
-      status: json['status'] ?? 'unknown',
-    );
-  }
+@freezed
+class PaymentModel with _$PaymentModel {
+  const factory PaymentModel({
+    required String paymentIntentId,
+    required String orderId,
+    required double amount,
+    required String currency,
+    required String status,
+    required String paymentMethod,
+    required String? phoneNumber,
+  }) = _PaymentModel;
 
-  Map<String, dynamic> toJson() {
-    return {
-      'payment_intent_id': paymentIntentId,
-      'order_id': orderId,
-      'amount': amount,
-      'currency': currency,
-      'status': status,
-    };
-  }
+  factory PaymentModel.fromJson(Map<String, dynamic> json) =>
+      _$PaymentModelFromJson(json);
 }

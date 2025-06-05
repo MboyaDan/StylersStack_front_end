@@ -4,158 +4,127 @@ import 'package:stylerstack/utils/constants.dart';
 import 'package:stylerstack/widgets/category_list_wiget.dart';
 import 'package:stylerstack/widgets/search_bar/search_bar_widget.dart';
 import 'package:stylerstack/widgets/flash_sale_grid_widget.dart';
-class  HomeMainScreen extends StatelessWidget{
+import '../../widgets/location_card.dart';
+
+class HomeMainScreen extends StatelessWidget {
   const HomeMainScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Location',
-            style: TextStyle(
-              color: AppColors.text,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
+              // Location Section
+              const LocationCard(),
+
+              const SizedBox(height: 20),
+              const SearchBarWidget(),
+
+              const SizedBox(height: 25),
+              // Banner Section
+              Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: const Color(0xFFDCC6B0),
+                  image: const DecorationImage(
+                    image: AssetImage("assets/images/banner.jpg"),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                child: Align(
+                  alignment: Alignment.bottomRight,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        const Text(
+                          "New Collection",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        const Text(
+                          "Discount 50% On \n All new Products",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        ElevatedButton(
+                          onPressed: () => context.go('/products'),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                            shadowColor: Colors.transparent,
+                            backgroundColor: AppColors.background,
+                            foregroundColor: AppColors.primary,
+                            textStyle: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              fontFamily: 'Montserrat',
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Text('Shop Now'),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
               ),
-              const SizedBox(height: 10),
-              const Row(
+
+              const SizedBox(height: 20),
+
+              // Category Section
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Icon(Icons.location_on, color: AppColors.primary),
-                      SizedBox(width: 8),
-                      Text(
-                        'New York, USA',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.text,
-                        ),
-                      ),
-                      Icon(Icons.keyboard_arrow_down),
-                    ],
+                  const Text(
+                    'Category',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.brown,
+                    ),
                   ),
-                  Icon(Icons.notifications),
+                  TextButton(
+                    onPressed: () => context.go('/products'),
+                    child: const Text(
+                      'See All',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF795548),
+                      ),
+                    ),
+                  ),
                 ],
               ),
-
-              const SizedBox(height: 10),
-              const SearchBarWidget(),
-              const SizedBox(height: 25),
-
-              // Banner
-          Container(
-          height: 200,
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-          color: const Color(0xFFDCC6B0),
-          image: const DecorationImage(
-            image: AssetImage("assets/images/banner.jpg"),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Align(
-          alignment: Alignment.bottomRight,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-              const Text("New Collection",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                color:AppColors.primary,
-                fontSize: 16,),
-            ),
-                const SizedBox(height: 5),
-
-                const Text("Discount 50% On \n All new Products",
-                  textAlign: TextAlign.start,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                    fontSize: 12,),
-                ),
-                const SizedBox(height: 15),
-
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    //elevation: 0,
-                    shadowColor: Colors.transparent,
-                    minimumSize: const Size(0, 20),
-                    backgroundColor: AppColors.background,
-                    foregroundColor: AppColors.primary,
-                    textStyle: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                      fontFamily: 'Montserrat',
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ) ,
-
-                  onPressed: () {
-                    context.go('/products');
-                  },
-                  child: const Text('Shop Now'),
-
-                )
-
-            ],
-          ),),
-        ),
-      ),
-      const SizedBox(height: 20),
-
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text('Category',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.brown,
-            ),
-          ),
-          TextButton(
-              onPressed: () {
-                context.go('/products');
-                },
-            child: const Text(
-            'See All',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF795548), // Deep Navy Blue
-            ),
-          ),
-          ),
-        ],
-      ),
               const SizedBox(height: 10),
               const CategoryListWidget(),
               const SizedBox(height: 25),
+
+              // Flash Sale Section
               const Text(
                 'Flash Sale',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF795548), // Deep Navy Blue
+                  color: Color(0xFF795548),
                 ),
               ),
               const SizedBox(height: 10),

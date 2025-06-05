@@ -60,6 +60,11 @@ dependencies:
   hive_flutter: ^1.1.0
   hive_generator: ^2.0.1
   freezed: ^2.5.7
+  geolocator: ^14.0.1
+  geocoding: ^4.0.0
+  flutter_map: ^8.1.1
+  latlong2: ^0.9.1
+  permission_handler: ^12.0.0+1
 
 
 dev_dependencies:

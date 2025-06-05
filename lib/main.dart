@@ -9,6 +9,7 @@ import 'package:stylerstack/providers/address_provider.dart';
 import 'package:stylerstack/providers/auth_provider.dart';
 import 'package:stylerstack/providers/cart_provider.dart';
 import 'package:stylerstack/providers/favorite_provider.dart';
+import 'package:stylerstack/providers/location_provider.dart';
 import 'package:stylerstack/providers/product_provider.dart';
 import 'package:stylerstack/providers/theme_provider.dart';
 import 'package:stylerstack/providers/payment_provider.dart';
@@ -79,6 +80,12 @@ class StyleStackApp extends StatelessWidget {
             provider.updateApiService(api);
             return provider;
           },
+        ),
+
+        ///location provider
+
+        ChangeNotifierProvider(
+          create: (_) => LocationProvider()..loadLocation(),
         ),
 
 

@@ -63,7 +63,7 @@ class MyCartScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Total: \$${provider.totalCartPrice.toStringAsFixed(2)}",
+              Text("Total:  KES ${provider.totalCartPrice.toStringAsFixed(2)}",
                   style: const TextStyle(fontWeight: FontWeight.bold),),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
