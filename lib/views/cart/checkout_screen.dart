@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:stylerstack/widgets/mpesa_input_widget.dart';
 
-import '../../providers/cart_provider.dart';
+import 'package:stylerstack/providers/cart_provider.dart';
 import 'package:stylerstack/providers/address_provider.dart';
 import 'package:stylerstack/providers/payment_provider.dart';
 import 'package:stylerstack/widgets/order_summary_widget.dart';
-import '../../utils/constants.dart';
+import 'package:stylerstack/utils/constants.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -18,13 +19,12 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _isLoading = false;
 
-  /// Handles the whole pay-and-navigate flow
   Future<void> _handlePayment() async {
-    final cartProvider     = context.read<CartProvider>();
-    final paymentProvider  = context.read<PaymentProvider>();
-    final currentAddress   = context.read<AddressProvider>().address;
+    final cartProvider = context.read<CartProvider>();
+    final paymentProvider = context.read<PaymentProvider>();
+    final currentAddress = context.read<AddressProvider>().address;
 
-    // --- basic validation --
+    // --- Validations ---
     if (currentAddress == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please add a shipping address.')),
@@ -37,10 +37,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
       return;
     }
-//special flow for mpesa
+
+    // --- M-Pesa phone number input ---
     if (paymentProvider.selectedMethod == 'mpesa') {
       if (paymentProvider.phoneNumber == null || paymentProvider.phoneNumber!.isEmpty) {
-        final result = await context.push<bool>('/mpesa-phone-input') ?? false;
+        final result = await showMpesaPhoneInputModal(context);
         if (!result || paymentProvider.phoneNumber == null || paymentProvider.phoneNumber!.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Mpesa phone number is required.')),
@@ -50,35 +51,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
     }
 
-    // --- perform payment ---
+    // --- Payment Logic ---
     setState(() => _isLoading = true);
     try {
       await paymentProvider.initiatePayment(
-        amount   : cartProvider.totalCartPrice,
-        currency : 'Ksh',
-        orderId  : 'ORD-${DateTime.now().millisecondsSinceEpoch}',
+        amount: cartProvider.totalCartPrice,
+        currency: 'Ksh',
+        orderId: 'ORD-${DateTime.now().millisecondsSinceEpoch}',
         paymentMethod: paymentProvider.selectedMethod!.toLowerCase(),
+        phoneNumber: paymentProvider.selectedMethod == 'mpesa'
+            ? paymentProvider.phoneNumber
+            : null,
       );
 
-      if (paymentProvider.payment != null) {
-        // Success → clear cart, toast, then navigate
-        if (!mounted) return;
-        cartProvider.clearCart();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Payment successful!')),
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Payment failed initated,awaiting confirmation')),
         );
-        await context.push('/payment-success');
-      } else {
-        // Failure → show reason
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Payment failed: ${paymentProvider.error}')),
-        );
-      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred during payment: $e')),
+        SnackBar(content: Text('An error occurred during payment:  ${paymentProvider.error}')),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -99,52 +93,76 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             padding: const EdgeInsets.all(AppSpacing.padding),
             child: Column(
               children: [
-                // --- order summary -------------------------------------------------
                 const OrderSummaryWidget(),
                 const SizedBox(height: 20),
 
-                // --- shipping address ---------------------------------------------
+                // --- Shipping Address ---
                 Card(
                   margin: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: ListTile(
-                    title    : const Text('Shipping Address'),
-                    subtitle : Text(addressProvider.displayAddress),
-                    trailing : const Icon(Icons.edit, color: AppColors.primary),
-                    onTap    : () => context.push('/shipping-address'),
+                    title: const Text('Shipping Address'),
+                    subtitle: Text(addressProvider.displayAddress),
+                    trailing: const Icon(Icons.edit, color: AppColors.primary),
+                    onTap: () => context.push('/shipping-address'),
                   ),
                 ),
                 const SizedBox(height: 12),
 
-                // --- payment method -----------------------------------------------
+                // --- Payment Method ---
                 Card(
                   margin: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: ListTile(
-                    title    : const Text('Payment Method'),
-                    subtitle : Text(paymentProvider.selectedMethod ?? 'Not selected'),
-                    trailing : const Icon(Icons.payment, color: AppColors.primary),
-                    onTap    : () => context.push('/payment-method'),
+                    title: const Text('Payment Method'),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(paymentProvider.selectedMethod ?? 'Not selected'),
+                        if (paymentProvider.selectedMethod == 'mpesa' &&
+                            paymentProvider.phoneNumber != null &&
+                            paymentProvider.phoneNumber!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              'Phone: ${paymentProvider.phoneNumber}',
+                              style: const TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    trailing: const Icon(Icons.payment, color: AppColors.primary),
+                    onTap: () async {
+                      final previousMethod = paymentProvider.selectedMethod;
+                      await context.push('/payment-method');
+                      if (paymentProvider.selectedMethod != previousMethod) {
+                        paymentProvider.setPhoneNumber(null); // 🔁 Reset M-Pesa number
+                      }
+                    },
                   ),
                 ),
 
                 const Spacer(),
 
-                // --- pay button ----------------------------------------------------
+                // --- Pay Button ---
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
-                    minimumSize    : const Size.fromHeight(50),
+                    minimumSize: const Size.fromHeight(50),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
                     ),
                   ),
                   onPressed: _isLoading ? null : _handlePayment,
-                  child: const Text('Proceed to Payment',
+                  child: const Text(
+                    'Proceed to Payment',
                     style: TextStyle(
                       color: AppColors.text,
                       fontSize: 16,
@@ -156,10 +174,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
 
-          // --- loading overlay ---------------------------------------------------
+          // --- Loading Overlay ---
           if (_isLoading)
             Container(
-              color: Colors.black.withValues(alpha: (0.3)),
+              color: Colors.black.withOpacity(0.3),
               alignment: Alignment.center,
               child: const CircularProgressIndicator(),
             ),

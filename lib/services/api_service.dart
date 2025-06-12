@@ -29,7 +29,8 @@ class ApiService {
       ),
     ]);
   }
-/// ========== INTERCEPTORS ========== //
+
+  /// ========== INTERCEPTORS ========== //
   /// Retry on network-related errors or server crashes
   RetryInterceptor _retryInterceptor() {
     return RetryInterceptor(
@@ -48,7 +49,8 @@ class ApiService {
           error.response?.statusCode == 503,
     );
   }
-/// Interceptor to attach Authorization headers & refresh tokens if needed
+
+  /// Interceptor to attach Authorization headers & refresh tokens if needed
   InterceptorsWrapper _authInterceptor() {
     return InterceptorsWrapper(
       onRequest: (options, handler) async {
@@ -100,34 +102,33 @@ class ApiService {
 
   // ========== API METHODS ========== //
 
-  Future<Response> getRequest(
-      String endpoint, {
-        Map<String, dynamic>? queryParams,
-      }) async {
+  Future<Response> getRequest(String endpoint, {
+    Map<String, dynamic>? queryParams,
+  }) async {
     return await _dio.get(endpoint, queryParameters: queryParams);
   }
 
-  Future<Response> postRequest(
-      String endpoint,
-      Map<String, dynamic> data,
-      ) async {
+  Future<Response> postRequest(String endpoint,
+      Map<String, dynamic> data,) async {
     return await _dio.post(endpoint, data: data);
   }
 
-  Future<Response> putRequest(
-      String endpoint,
-      Map<String, dynamic> data,
-      ) async {
+  Future<Response> putRequest(String endpoint,
+      Map<String, dynamic> data,) async {
     return await _dio.put(endpoint, data: data);
   }
 
-  Future<Response> deleteRequest(
-      String endpoint, {
-        Map<String, dynamic>? data,
-      }) async {
+  Future<Response> deleteRequest(String endpoint, {
+    Map<String, dynamic>? data,
+  }) async {
     return await _dio.delete(endpoint, data: data);
+  }
+
+  Future<Response> patchRequest(String endpoint,
+      Map<String, dynamic> data,) async {
+    return await _dio.patch(endpoint, data: data);
   }
 }
 ////personal notes retrieving the JWT token, refreshing it if expired,
 // intercepting and retrying failed requests (e.g., 401),
-//securely storing the token (via flutter_secure_storage)////
+///securely storing the token (via flutter_secure_storage)

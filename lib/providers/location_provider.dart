@@ -18,7 +18,7 @@ class LocationProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // ✅ Check if location services are enabled
+      //  Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         _errorMessage = 'Location services are disabled.';
@@ -27,7 +27,7 @@ class LocationProvider with ChangeNotifier {
         return;
       }
 
-      // ✅ Check and request permission
+      //  Check and request permission
       LocationPermission permission = await Geolocator.checkPermission();
 
       if (permission == LocationPermission.denied) {
@@ -47,7 +47,7 @@ class LocationProvider with ChangeNotifier {
         return;
       }
 
-      // ✅ Ensure permission level is sufficient
+      //  Ensure permission level is sufficient
       if (permission != LocationPermission.always &&
           permission != LocationPermission.whileInUse) {
         _errorMessage = 'Insufficient location permission.';
@@ -56,13 +56,13 @@ class LocationProvider with ChangeNotifier {
         return;
       }
 
-      // ✅ Fetch the location using service
+      //  Fetch the location using service
       _location = await LocationService().getCurrentLocation();
       if (_location == null) {
         _errorMessage = 'Failed to get location.';
       }
 
-      // ✅ Optional: log location and permission status
+      // Optional: log location and permission status
       debugPrint("Permission status: $permission");
       debugPrint("Location: $_location");
     } catch (e) {

@@ -6,15 +6,19 @@ part 'payment_model.g.dart';
 @freezed
 class PaymentModel with _$PaymentModel {
   const factory PaymentModel({
-    required String paymentIntentId,
-    required String orderId,
+    @JsonKey(name: 'payment_intent_id') String? paymentIntentId,
+    @JsonKey(name: 'order_id') required String orderId,
     required double amount,
     required String currency,
     required String status,
-    required String paymentMethod,
-    required String? phoneNumber,
+    @JsonKey(name: 'payment_method') required String paymentMethod,
+    @JsonKey(name: 'phone_number') String? phoneNumber,
   }) = _PaymentModel;
 
   factory PaymentModel.fromJson(Map<String, dynamic> json) =>
       _$PaymentModelFromJson(json);
 }
+
+
+
+

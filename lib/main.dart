@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/adapters.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:stylerstack/models/cart_item.dart';
 import 'package:stylerstack/models/favorite_item.dart';
 
-import 'package:stylerstack/providers/address_provider.dart';
 import 'package:stylerstack/providers/auth_provider.dart';
+import 'package:stylerstack/providers/address_provider.dart';
 import 'package:stylerstack/providers/cart_provider.dart';
 import 'package:stylerstack/providers/favorite_provider.dart';
 import 'package:stylerstack/providers/location_provider.dart';
+import 'package:stylerstack/providers/notification_provider.dart';
 import 'package:stylerstack/providers/product_provider.dart';
 import 'package:stylerstack/providers/theme_provider.dart';
 import 'package:stylerstack/providers/payment_provider.dart';
@@ -25,13 +26,21 @@ import 'package:stylerstack/widgets/connectivity_banner.dart';
 
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:go_router/go_router.dart';
 
-void main() async {
+final GlobalKey<NavigatorState> globalNavigatorKey = GlobalKey<NavigatorState>();
+
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  debugPrint("Handling background message: ${message.messageId}");
+}
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final appDir = await getApplicationDocumentsDirectory();
-  Hive.init(appDir.path);
+  await Hive.initFlutter(appDir.path);
 
   Hive.registerAdapter(CartItemModelAdapter());
   Hive.registerAdapter(FavoriteItemAdapter());
@@ -40,7 +49,15 @@ void main() async {
   await Hive.openBox<FavoriteItem>('favoriteBox');
 
   await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
   runApp(const StyleStackApp());
+  ///final token = await FirebaseMessaging.instance.getToken();
+  //if (token != null) {
+   // print("📡 FCM Token: $token");
+  //} else {
+   // print('❌ Failed to retrieve FCM token');
+  //}
 }
 
 class StyleStackApp extends StatelessWidget {
@@ -50,118 +67,106 @@ class StyleStackApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        /// --- Auth & Router ---
+        /// Authentication
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+
+        /// Router
         ProxyProvider<AuthProvider, GoRouter>(
           update: (_, auth, __) => createRouter(auth),
         ),
 
-        /// --- ApiService ---
+        /// Theme
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+
+        /// API Service
         ProxyProvider2<AuthProvider, GoRouter, ApiService>(
           update: (_, auth, router, __) => ApiService(auth, router),
         ),
 
-        /// --- Theme ---
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-
-        /// --- Category ---
+        /// Category Service
         ProxyProvider<ApiService, CategoryService>(
           update: (_, api, __) => CategoryService(api),
         ),
 
-        /// --- Product Provider ---
+        /// Product Provider
         ChangeNotifierProxyProvider2<ApiService, CategoryService, ProductProvider>(
-          create: (context) {
-            final catService = context.read<CategoryService>();
-            return ProductProvider(catService);
-          },
-          update: (_, api, catService, previous) {
-            final provider = previous ?? ProductProvider(catService);
-            provider.updateApiService(api);
-            return provider;
-          },
+          create: (context) => ProductProvider(context.read<CategoryService>()),
+          update: (_, api, catService, previous) =>
+          (previous ?? ProductProvider(catService))..updateApiService(api),
         ),
 
-        ///location provider
+        /// Location
+        ChangeNotifierProvider(create: (_) => LocationProvider()..loadLocation()),
 
-        ChangeNotifierProvider(
-          create: (_) => LocationProvider()..loadLocation(),
-        ),
-
-
-
-        /// --- FavoriteService (depends on ApiService) ---
+        /// Favorite Service
         ProxyProvider<ApiService, FavoriteService>(
           update: (_, api, __) => FavoriteService(api),
         ),
 
+        /// Hive Favorite Box
         Provider<Box<FavoriteItem>>(
           create: (_) => Hive.box<FavoriteItem>('favoriteBox'),
         ),
 
-
-        /// --- FavoriteProvider (depends on FavoriteService + Hive box) ---
+        /// Favorite Provider
         ChangeNotifierProxyProvider2<FavoriteService, Box<FavoriteItem>, FavoriteProvider>(
-          create: (context) {
-            final favoriteService = Provider.of<FavoriteService>(context, listen: false);
-            final box = Provider.of<Box<FavoriteItem>>(context, listen: false);
-            return FavoriteProvider(favoriteService, box);
-          },
-          update: (context, favoriteService, box, previous) {
-            final provider = previous ?? FavoriteProvider(favoriteService, box);
-            provider.updateService(favoriteService);
-            return provider;
-          },
+          create: (context) => FavoriteProvider(
+            Provider.of<FavoriteService>(context, listen: false),
+            Provider.of<Box<FavoriteItem>>(context, listen: false),
+          ),
+          update: (_, service, box, previous) =>
+          (previous ?? FavoriteProvider(service, box))..updateService(service),
         ),
 
-
-
-
-        /// --- Payment ---
-        /// --- Payment ---
+        /// Payment Provider
         ChangeNotifierProxyProvider<ApiService, PaymentProvider>(
           create: (context) => PaymentProvider(context.read<ApiService>()),
           update: (_, api, previous) => previous!..updateApi(api),
         ),
 
-
-        /// --- Cart ---
+        /// Cart Provider
         ChangeNotifierProxyProvider<ApiService, CartProvider>(
           create: (context) => CartProvider(context.read<ApiService>()),
           update: (_, api, __) => CartProvider(api),
         ),
 
-        /// --- Address ---
+        /// Address Provider
         ChangeNotifierProxyProvider2<AuthProvider, ApiService, AddressProvider>(
           create: (context) {
-            final auth = context.read<AuthProvider>();
             final api = context.read<ApiService>();
             final provider = AddressProvider(api);
-
-            final uid = auth.user?.uid;
-            if (uid != null) {
-              provider.fetchAddress(uid);
-            }
-
+            final uid = context.read<AuthProvider>().user?.uid;
+            if (uid != null) provider.fetchAddress(uid);
             return provider;
           },
           update: (context, auth, api, previous) {
             final provider = previous ?? AddressProvider(api);
             final uid = auth.user?.uid;
-
-            if (uid != null) {
-              provider.fetchAddress(uid);
-            }
-
+            if (uid != null) provider.fetchAddress(uid);
             return provider;
           },
         ),
 
+        /// Notification Provider
+    /// Notification Provider
+    ChangeNotifierProxyProvider<ApiService, NotificationProvider>(
+      create: (context) {
+        final api = context.read<ApiService>();
+        final provider = NotificationProvider(api, globalNavigatorKey);
+        provider.initFCM();
+        return provider;
+        },
+      update: (_, api, previous) {
+        final provider = previous ?? NotificationProvider(api, globalNavigatorKey);
+        provider.initFCM();
+        return provider;
+    },
+    ),
 
-        /// --- Connectivity ---
+        /// Connectivity Service
         Provider<ConnectivityService>(
           create: (_) => ConnectivityService(),
-          dispose: (_, svc) => svc.dispose(),
+          dispose: (_, service) => service.dispose(),
         ),
       ],
       child: Consumer2<AuthProvider, GoRouter>(
@@ -169,8 +174,9 @@ class StyleStackApp extends StatelessWidget {
           return Consumer<ConnectivityService>(
             builder: (context, conn, _) => StreamBuilder<bool>(
               stream: conn.internetStatusStream,
-              builder: (context, snap) {
-                final hasInternet = snap.data ?? true;
+              builder: (context, snapshot) {
+                final hasInternet = snapshot.data ?? true;
+
                 return MaterialApp.router(
                   routerConfig: router,
                   debugShowCheckedModeBanner: false,
@@ -179,18 +185,14 @@ class StyleStackApp extends StatelessWidget {
                       : ThemeMode.light,
                   darkTheme: ThemeData.dark(),
                   theme: ThemeData.light(),
-                  builder: (context, child) {
-                    return AuthFeedbackListener(
+                  builder: (context, child) => AuthFeedbackListener(
                     child: Stack(
                       children: [
                         child!,
-                        ConnectivityBanner(
-                          hasInternet: hasInternet,
+                        ConnectivityBanner(hasInternet: hasInternet),
+                      ],
                     ),
-                    ],
-                    ),
-                    );
-                  },
+                  ),
                 );
               },
             ),
@@ -199,5 +201,4 @@ class StyleStackApp extends StatelessWidget {
       ),
     );
   }
-
 }

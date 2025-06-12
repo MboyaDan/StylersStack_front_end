@@ -64,7 +64,7 @@ class PaymentProvider extends ChangeNotifier {
   }
 
 
-  void setPhoneNumber(String number) {
+  void setPhoneNumber(String? number) {
     _phoneNumber = number;
     notifyListeners();
   }

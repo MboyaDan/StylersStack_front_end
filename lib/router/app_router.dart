@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
+import 'package:stylerstack/main.dart';
 import 'package:stylerstack/models/category_type.dart';
 import 'package:stylerstack/views/auth/login_screen.dart';
 import 'package:stylerstack/views/auth/registration_screen.dart';
@@ -21,6 +22,7 @@ import 'package:stylerstack/views/product/product_details.dart';
 
 GoRouter createRouter(AuthProvider authProvider) {
   return GoRouter(
+    navigatorKey: globalNavigatorKey,
     initialLocation: '/',
     redirect: (context, state) {
       final isLoading = authProvider.isLoading;

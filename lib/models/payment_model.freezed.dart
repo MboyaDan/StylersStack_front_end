@@ -20,12 +20,16 @@ PaymentModel _$PaymentModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$PaymentModel {
-  String get paymentIntentId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'payment_intent_id')
+  String? get paymentIntentId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'order_id')
   String get orderId => throw _privateConstructorUsedError;
   double get amount => throw _privateConstructorUsedError;
   String get currency => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
+  @JsonKey(name: 'payment_method')
   String get paymentMethod => throw _privateConstructorUsedError;
+  @JsonKey(name: 'phone_number')
   String? get phoneNumber => throw _privateConstructorUsedError;
 
   /// Serializes this PaymentModel to a JSON map.
@@ -45,13 +49,13 @@ abstract class $PaymentModelCopyWith<$Res> {
       _$PaymentModelCopyWithImpl<$Res, PaymentModel>;
   @useResult
   $Res call(
-      {String paymentIntentId,
-      String orderId,
+      {@JsonKey(name: 'payment_intent_id') String? paymentIntentId,
+      @JsonKey(name: 'order_id') String orderId,
       double amount,
       String currency,
       String status,
-      String paymentMethod,
-      String? phoneNumber});
+      @JsonKey(name: 'payment_method') String paymentMethod,
+      @JsonKey(name: 'phone_number') String? phoneNumber});
 }
 
 /// @nodoc
@@ -69,7 +73,7 @@ class _$PaymentModelCopyWithImpl<$Res, $Val extends PaymentModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? paymentIntentId = null,
+    Object? paymentIntentId = freezed,
     Object? orderId = null,
     Object? amount = null,
     Object? currency = null,
@@ -78,10 +82,10 @@ class _$PaymentModelCopyWithImpl<$Res, $Val extends PaymentModel>
     Object? phoneNumber = freezed,
   }) {
     return _then(_value.copyWith(
-      paymentIntentId: null == paymentIntentId
+      paymentIntentId: freezed == paymentIntentId
           ? _value.paymentIntentId
           : paymentIntentId // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       orderId: null == orderId
           ? _value.orderId
           : orderId // ignore: cast_nullable_to_non_nullable
@@ -119,13 +123,13 @@ abstract class _$$PaymentModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String paymentIntentId,
-      String orderId,
+      {@JsonKey(name: 'payment_intent_id') String? paymentIntentId,
+      @JsonKey(name: 'order_id') String orderId,
       double amount,
       String currency,
       String status,
-      String paymentMethod,
-      String? phoneNumber});
+      @JsonKey(name: 'payment_method') String paymentMethod,
+      @JsonKey(name: 'phone_number') String? phoneNumber});
 }
 
 /// @nodoc
@@ -141,7 +145,7 @@ class __$$PaymentModelImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? paymentIntentId = null,
+    Object? paymentIntentId = freezed,
     Object? orderId = null,
     Object? amount = null,
     Object? currency = null,
@@ -150,10 +154,10 @@ class __$$PaymentModelImplCopyWithImpl<$Res>
     Object? phoneNumber = freezed,
   }) {
     return _then(_$PaymentModelImpl(
-      paymentIntentId: null == paymentIntentId
+      paymentIntentId: freezed == paymentIntentId
           ? _value.paymentIntentId
           : paymentIntentId // ignore: cast_nullable_to_non_nullable
-              as String,
+              as String?,
       orderId: null == orderId
           ? _value.orderId
           : orderId // ignore: cast_nullable_to_non_nullable
@@ -186,20 +190,22 @@ class __$$PaymentModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$PaymentModelImpl implements _PaymentModel {
   const _$PaymentModelImpl(
-      {required this.paymentIntentId,
-      required this.orderId,
+      {@JsonKey(name: 'payment_intent_id') this.paymentIntentId,
+      @JsonKey(name: 'order_id') required this.orderId,
       required this.amount,
       required this.currency,
       required this.status,
-      required this.paymentMethod,
-      required this.phoneNumber});
+      @JsonKey(name: 'payment_method') required this.paymentMethod,
+      @JsonKey(name: 'phone_number') this.phoneNumber});
 
   factory _$PaymentModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$PaymentModelImplFromJson(json);
 
   @override
-  final String paymentIntentId;
+  @JsonKey(name: 'payment_intent_id')
+  final String? paymentIntentId;
   @override
+  @JsonKey(name: 'order_id')
   final String orderId;
   @override
   final double amount;
@@ -208,8 +214,10 @@ class _$PaymentModelImpl implements _PaymentModel {
   @override
   final String status;
   @override
+  @JsonKey(name: 'payment_method')
   final String paymentMethod;
   @override
+  @JsonKey(name: 'phone_number')
   final String? phoneNumber;
 
   @override
@@ -258,20 +266,23 @@ class _$PaymentModelImpl implements _PaymentModel {
 
 abstract class _PaymentModel implements PaymentModel {
   const factory _PaymentModel(
-      {required final String paymentIntentId,
-      required final String orderId,
-      required final double amount,
-      required final String currency,
-      required final String status,
-      required final String paymentMethod,
-      required final String? phoneNumber}) = _$PaymentModelImpl;
+          {@JsonKey(name: 'payment_intent_id') final String? paymentIntentId,
+          @JsonKey(name: 'order_id') required final String orderId,
+          required final double amount,
+          required final String currency,
+          required final String status,
+          @JsonKey(name: 'payment_method') required final String paymentMethod,
+          @JsonKey(name: 'phone_number') final String? phoneNumber}) =
+      _$PaymentModelImpl;
 
   factory _PaymentModel.fromJson(Map<String, dynamic> json) =
       _$PaymentModelImpl.fromJson;
 
   @override
-  String get paymentIntentId;
+  @JsonKey(name: 'payment_intent_id')
+  String? get paymentIntentId;
   @override
+  @JsonKey(name: 'order_id')
   String get orderId;
   @override
   double get amount;
@@ -280,8 +291,10 @@ abstract class _PaymentModel implements PaymentModel {
   @override
   String get status;
   @override
+  @JsonKey(name: 'payment_method')
   String get paymentMethod;
   @override
+  @JsonKey(name: 'phone_number')
   String? get phoneNumber;
 
   /// Create a copy of PaymentModel

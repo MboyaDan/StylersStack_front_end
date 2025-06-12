@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../providers/payment_provider.dart';
 
 class MpesaPhoneInputScreen extends StatefulWidget {
@@ -14,6 +15,15 @@ class _MpesaPhoneInputScreenState extends State<MpesaPhoneInputScreen> {
   final _controller = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    final existingPhone = context.read<PaymentProvider>().phoneNumber;
+    if (existingPhone != null && existingPhone.length == 9) {
+      _controller.text = existingPhone;
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -22,7 +32,7 @@ class _MpesaPhoneInputScreenState extends State<MpesaPhoneInputScreen> {
   void _submitPhoneNumber() {
     if (_formKey.currentState!.validate()) {
       context.read<PaymentProvider>().setPhoneNumber(_controller.text.trim());
-      Navigator.pop(context, true); // Pass back success
+      context.pop(true);
     }
   }
 
