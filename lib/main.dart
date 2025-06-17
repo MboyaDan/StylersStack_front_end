@@ -29,6 +29,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:stylerstack/widgets/fcm_intializer.dart';
+
 final GlobalKey<NavigatorState> globalNavigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -50,14 +52,15 @@ Future<void> main() async {
 
   await Firebase.initializeApp();
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
+
 
   runApp(const StyleStackApp());
-  ///final token = await FirebaseMessaging.instance.getToken();
-  //if (token != null) {
-   // print("📡 FCM Token: $token");
-  //} else {
-   // print('❌ Failed to retrieve FCM token');
-  //}
 }
 
 class StyleStackApp extends StatelessWidget {
@@ -65,6 +68,7 @@ class StyleStackApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return MultiProvider(
       providers: [
         /// Authentication
@@ -153,7 +157,7 @@ class StyleStackApp extends StatelessWidget {
       create: (context) {
         final api = context.read<ApiService>();
         final provider = NotificationProvider(api, globalNavigatorKey);
-        provider.initFCM();
+        Future.microtask(()=>provider.initFCM());
         return provider;
         },
       update: (_, api, previous) {
@@ -177,7 +181,8 @@ class StyleStackApp extends StatelessWidget {
               builder: (context, snapshot) {
                 final hasInternet = snapshot.data ?? true;
 
-                return MaterialApp.router(
+                return FCMInitializer(
+                  child:MaterialApp.router(
                   routerConfig: router,
                   debugShowCheckedModeBanner: false,
                   themeMode: context.watch<ThemeProvider>().isDarkMode
@@ -193,6 +198,7 @@ class StyleStackApp extends StatelessWidget {
                       ],
                     ),
                   ),
+                ),
                 );
               },
             ),

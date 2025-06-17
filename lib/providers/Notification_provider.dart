@@ -31,18 +31,27 @@ void resetNavigatedToSuccess() {
     _hasNavigatedToSuccess = false;
     notifyListeners();
 }
-  Future<void> initFCM() async {
+
+Future<void> initFCM() async {
+    debugPrint("🚀 initFCM START");
+
     NotificationSettings settings = await _messaging.requestPermission();
+    debugPrint("🔐 Permission status: ${settings.authorizationStatus}");
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      debugPrint("✅ Permissions granted");
       await _setupLocalNotifications();
       await _setupToken();
       _handleForegroundMessages();
       _handleBackgroundMessages();
+    } else {
+      debugPrint("❌ Permissions not granted");
     }
   }
 
+
   Future<void> _setupToken() async {
+    debugPrint("_setuptoken called");
     final token = await _messaging.getToken();
     if (token != null) {
       if (kDebugMode) {

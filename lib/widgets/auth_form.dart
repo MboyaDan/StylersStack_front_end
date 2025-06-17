@@ -71,6 +71,7 @@ class _AuthFormState extends State<AuthForm> with SingleTickerProviderStateMixin
     } else {
       error = await widget.register(email, password);
     }
+    if (!mounted) return; // Check if the context is still valid before navigating
 
     setState(() => _isLoading = false);
 
@@ -88,6 +89,7 @@ class _AuthFormState extends State<AuthForm> with SingleTickerProviderStateMixin
     _clearError();
 
     String? error = await widget.onGoogleSignIn!();
+    if (!mounted) return; // Check if the context is still valid before navigating)
 
     setState(() => _isGoogleLoading = false);
 

@@ -67,7 +67,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Payment failed initated,awaiting confirmation')),
+          const SnackBar(content: Text('Payment initated,awaiting confirmation')),
         );
     } catch (e) {
       if (!mounted) return;

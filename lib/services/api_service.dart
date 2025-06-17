@@ -124,10 +124,20 @@ class ApiService {
     return await _dio.delete(endpoint, data: data);
   }
 
-  Future<Response> patchRequest(String endpoint,
-      Map<String, dynamic> data,) async {
-    return await _dio.patch(endpoint, data: data);
+  Future<Response> patchRequest(
+      String endpoint,
+      Map<String, dynamic> data, {
+        bool Function(int?)? validateStatus,
+      }) async {
+    return await _dio.patch(
+      endpoint,
+      data: data,
+      options: Options(
+        validateStatus: validateStatus ?? (status) => status != null && status < 500,
+      ),
+    );
   }
+
 }
 ////personal notes retrieving the JWT token, refreshing it if expired,
 // intercepting and retrying failed requests (e.g., 401),
