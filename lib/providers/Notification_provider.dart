@@ -4,10 +4,12 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+
 import 'package:stylerstack/providers/cart_provider.dart';
 import 'package:stylerstack/providers/payment_provider.dart';
 import 'package:stylerstack/services/api_service.dart';
 import 'package:stylerstack/services/notification_service.dart';
+import 'package:stylerstack/services/payment_ui_service.dart';
 
 class NotificationProvider with ChangeNotifier {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
@@ -27,51 +29,32 @@ class NotificationProvider with ChangeNotifier {
     _hasNavigatedToSuccess = true;
     notifyListeners();
   }
-void resetNavigatedToSuccess() {
+
+  void resetNavigatedToSuccess() {
     _hasNavigatedToSuccess = false;
     notifyListeners();
-}
+  }
 
-Future<void> initFCM() async {
-    debugPrint("🚀 initFCM START");
-
+  Future<void> initFCM() async {
     NotificationSettings settings = await _messaging.requestPermission();
-    debugPrint("🔐 Permission status: ${settings.authorizationStatus}");
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      debugPrint("✅ Permissions granted");
       await _setupLocalNotifications();
       await _setupToken();
       _handleForegroundMessages();
       _handleBackgroundMessages();
-    } else {
-      debugPrint("❌ Permissions not granted");
     }
   }
 
-
   Future<void> _setupToken() async {
-    debugPrint("_setuptoken called");
     final token = await _messaging.getToken();
     if (token != null) {
-      if (kDebugMode) {
-        print("📡 FCM Token: $token");
-      }
       await _notificationService.sendTokenToBackend(token);
-    } else {
-      if (kDebugMode) {
-        print("❌ FCM token retrieval failed");
-      }
     }
-
     _messaging.onTokenRefresh.listen((newToken) async {
-      if (kDebugMode) {
-        print("🔄 FCM token refreshed: $newToken");
-      }
       await _notificationService.sendTokenToBackend(newToken);
     });
   }
-
 
   Future<void> _setupLocalNotifications() async {
     const android = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -80,18 +63,18 @@ Future<void> initFCM() async {
     await _flutterLocalNotificationsPlugin.initialize(
       const InitializationSettings(android: android, iOS: iOS),
       onDidReceiveNotificationResponse: (details) {
-        // Handle notification tap if needed
+        // Optional: handle tap on notification
       },
     );
   }
 
   void _handleForegroundMessages() {
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       final notification = message.notification;
       final android = message.notification?.android;
 
       if (notification != null && android != null) {
-        _flutterLocalNotificationsPlugin.show(
+        await _flutterLocalNotificationsPlugin.show(
           notification.hashCode,
           notification.title,
           notification.body,
@@ -122,29 +105,41 @@ Future<void> initFCM() async {
     final status = data['status'];
     final context = navigatorKey.currentContext;
 
-    if (context != null && orderId != null && status != null) {
-      final paymentProvider = Provider.of<PaymentProvider>(context, listen: false);
-      final cartProvider = Provider.of<CartProvider>(context, listen: false);
-      final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
+    if (context == null || orderId == null || status == null) return;
 
-      paymentProvider.updatePaymentStatusFromFCM(orderId, status);
+    final paymentProvider = Provider.of<PaymentProvider>(context, listen: false);
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
 
-      switch (status.toLowerCase()) {
-        case 'success':
-          if (!notificationProvider.hasNavigatedToSuccess) {
-            notificationProvider.markNavigatedToSuccess();
-            await cartProvider.clearCart();
-            GoRouter.of(context).go('/payment-success');  // Navigate to payment success screen
+    // Update payment status internally
+    paymentProvider.updatePaymentStatusFromFCM(orderId, status);
+
+    //  Close the payment dialog if it's open
+    PaymentUIService.closeDialogIfOpen(context);
+
+    //  Handle based on status
+    switch (status.toLowerCase()) {
+      case 'success':
+        if (!_hasNavigatedToSuccess) {
+          markNavigatedToSuccess();
+          await cartProvider.clearCart();
+
+          if (context.mounted) {
+            GoRouter.of(context).go('/payment-success');
           }
-          break;
-        case 'failed':
-        // Optionally handle failed state
-          break;
-        default:
-          debugPrint('Unknown payment status received: $status');
-          break;
-      }
+        }
+        break;
+
+      case 'failed':
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Payment failed. Please try again.')),
+          );
+        }
+        break;
+
+      default:
+        debugPrint('Unknown payment status received: $status');
+        break;
     }
   }
-
 }

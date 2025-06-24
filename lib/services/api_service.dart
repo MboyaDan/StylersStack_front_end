@@ -3,16 +3,13 @@ import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:stylerstack/providers/auth_provider.dart';
-//== API SERVICE ==//
-class ApiService {
 
-  /// Base URL for your API
+class ApiService {
   static const String baseUrl = 'http://10.0.2.2:8000';
   final Dio _dio;
   final GoRouter _router;
   final AuthProvider _authProvider;
 
-  //======= API SERVICE CONSTRUCTOR =========//
   ApiService(this._authProvider, this._router)
       : _dio = Dio(BaseOptions(
     baseUrl: baseUrl,
@@ -30,8 +27,9 @@ class ApiService {
     ]);
   }
 
-  /// ========== INTERCEPTORS ========== //
-  /// Retry on network-related errors or server crashes
+  /// ───────────────────────────────────────────────
+  /// Retry failed network/server requests
+  /// ───────────────────────────────────────────────
   RetryInterceptor _retryInterceptor() {
     return RetryInterceptor(
       dio: _dio,
@@ -50,77 +48,94 @@ class ApiService {
     );
   }
 
-  /// Interceptor to attach Authorization headers & refresh tokens if needed
+  /// ───────────────────────────────────────────────
+  /// Auth Interceptor for attaching tokens & refreshing
+  /// ───────────────────────────────────────────────
   InterceptorsWrapper _authInterceptor() {
     return InterceptorsWrapper(
       onRequest: (options, handler) async {
         try {
-          String? token = await _authProvider.getValidToken();
+          final token = await _authProvider.getValidToken();
 
           if (token != null && !JwtDecoder.isExpired(token)) {
             options.headers['Authorization'] = 'Bearer $token';
           } else {
-            print('Token is null or expired before sending request.');
-            await _handleLogout();
-            return;
+            print('⚠️ Token missing or expired. Continuing without auth header.');
           }
 
           handler.next(options);
-        } catch (e, stack) {
-          print('Auth Interceptor Error: $e');
-          print(stack);
-          await _handleLogout();
+        } catch (e, stackTrace) {
+          print('⚠️ Auth Interceptor Error: $e');
+          print(stackTrace);
+          // Don't block request; continue without auth
+          handler.next(options);
         }
       },
+
       onError: (DioException e, handler) async {
         if (e.response?.statusCode == 401) {
-          print('Received 401. Trying to refresh token...');
-          final newToken = await _authProvider.refreshToken();
-          if (newToken != null) {
-            final options = e.requestOptions;
-            // Save token
-            options.headers['Authorization'] = 'Bearer $newToken';
-            // Retry original request
-            final cloneReq = await _dio.fetch(e.requestOptions);
-            return handler.resolve(cloneReq);
-          } else {
-            print('Token refresh failed. Forcing logout.');
-            await _handleLogout();
+          print('🔁 401 Received. Attempting to refresh token...');
+
+          try {
+            final newToken = await _authProvider.refreshToken();
+
+            if (newToken != null && !JwtDecoder.isExpired(newToken)) {
+              final options = e.requestOptions;
+              options.headers['Authorization'] = 'Bearer $newToken';
+
+              final clonedResponse = await _dio.fetch(options);
+              return handler.resolve(clonedResponse);
+            } else {
+              print('❌ Token refresh failed or returned null. Aborting retry.');
+              return handler.next(e); // Don't log out immediately
+            }
+          } catch (err) {
+            print('❌ Error while refreshing token: $err');
+            return handler.next(e);
           }
         }
 
-        handler.next(e);
+        handler.next(e); // For all other errors
       },
     );
   }
 
-  /// Log out user, clear token, redirect to login
+  /// ───────────────────────────────────────────────
+  /// Safe Logout + Navigation (optional, no longer used in interceptor)
+  /// ───────────────────────────────────────────────
   Future<void> _handleLogout() async {
     await _authProvider.signOut();
     _router.go('/login');
   }
 
-  // ========== API METHODS ========== //
-
-  Future<Response> getRequest(String endpoint, {
-    Map<String, dynamic>? queryParams,
-  }) async {
+  /// ───────────────────────────────────────────────
+  /// API Methods
+  /// ───────────────────────────────────────────────
+  Future<Response> getRequest(
+      String endpoint, {
+        Map<String, dynamic>? queryParams,
+      }) async {
     return await _dio.get(endpoint, queryParameters: queryParams);
   }
 
-  Future<Response> postRequest(String endpoint,
-      Map<String, dynamic> data,) async {
+  Future<Response> postRequest(
+      String endpoint,
+      Map<String, dynamic> data,
+      ) async {
     return await _dio.post(endpoint, data: data);
   }
 
-  Future<Response> putRequest(String endpoint,
-      Map<String, dynamic> data,) async {
+  Future<Response> putRequest(
+      String endpoint,
+      Map<String, dynamic> data,
+      ) async {
     return await _dio.put(endpoint, data: data);
   }
 
-  Future<Response> deleteRequest(String endpoint, {
-    Map<String, dynamic>? data,
-  }) async {
+  Future<Response> deleteRequest(
+      String endpoint, {
+        Map<String, dynamic>? data,
+      }) async {
     return await _dio.delete(endpoint, data: data);
   }
 
@@ -137,8 +152,4 @@ class ApiService {
       ),
     );
   }
-
 }
-////personal notes retrieving the JWT token, refreshing it if expired,
-// intercepting and retrying failed requests (e.g., 401),
-///securely storing the token (via flutter_secure_storage)

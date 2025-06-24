@@ -5,7 +5,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/user_model.dart';
+import 'package:stylerstack/models/user_model.dart';
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -16,13 +16,20 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = true;
   bool _isLoggedOut = false;
 
-  // ────────────────────────────────────────────────────────────
-  // ctor: load cached user first, then listen to Firebase auth
-  // ────────────────────────────────────────────────────────────
+  bool _alreadyHandlingAuthChange = false;
+
   AuthProvider() {
     _loadCachedUser().then((_) {
-      // after cache attempt, listen for live changes
-      _auth.authStateChanges().listen(_setUser);
+      _auth.authStateChanges().listen((user) {
+        if (_alreadyHandlingAuthChange) return;
+
+        _alreadyHandlingAuthChange = true;
+        _setUser(user).whenComplete(() {
+          Future.delayed(const Duration(seconds: 1), () {
+            _alreadyHandlingAuthChange = false;
+          });
+        });
+      });
     });
   }
 
@@ -59,11 +66,15 @@ class AuthProvider extends ChangeNotifier {
 
   // ─────────────────────────────── Handle Firebase changes
   Future<void> _setUser(User? firebaseUser) async {
+    print('[AUTH DEBUG] Firebase user set: ${firebaseUser?.uid}');
+
     if (firebaseUser != null) {
       _user = UserModel(uid: firebaseUser.uid, email: firebaseUser.email ?? '');
       await _cacheUser(_user);
       final token = await refreshToken();
-      if (token != null) await _storage.write(key: 'id_token', value: token);
+      if (token != null) {
+        await _storage.write(key: 'id_token', value: token);
+      }
     } else {
       _user = null;
       await _cacheUser(null);
@@ -79,7 +90,9 @@ class AuthProvider extends ChangeNotifier {
     String? token = await _storage.read(key: 'id_token');
     if (token == null || JwtDecoder.isExpired(token)) {
       token = await refreshToken();
-      if (token != null) await _storage.write(key: 'id_token', value: token);
+      if (token != null) {
+        await _storage.write(key: 'id_token', value: token);
+      }
     }
     return token;
   }
@@ -134,7 +147,10 @@ class AuthProvider extends ChangeNotifier {
     try {
       _isLoading = true; notifyListeners();
       final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) { _isLoading = false; notifyListeners(); return "Google Sign-In canceled."; }
+      if (googleUser == null) {
+        _isLoading = false; notifyListeners();
+        return "Google Sign-In canceled.";
+      }
 
       final googleAuth = await googleUser.authentication;
       final cred = GoogleAuthProvider.credential(
@@ -159,6 +175,6 @@ class AuthProvider extends ChangeNotifier {
     await _googleSignIn.signOut();
     await _storage.delete(key: 'id_token');
     await _cacheUser(null);
-    await _setUser(null);
+    // DO NOT call _setUser(null) here — Firebase will trigger it via the auth listener
   }
 }

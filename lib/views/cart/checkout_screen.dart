@@ -1,13 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:stylerstack/widgets/appsnackwidget.dart';
 import 'package:stylerstack/widgets/mpesa_input_widget.dart';
-
 import 'package:stylerstack/providers/cart_provider.dart';
 import 'package:stylerstack/providers/address_provider.dart';
 import 'package:stylerstack/providers/payment_provider.dart';
 import 'package:stylerstack/widgets/order_summary_widget.dart';
 import 'package:stylerstack/utils/constants.dart';
+import 'package:stylerstack/services/payment_ui_service.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -17,66 +20,93 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  bool _isLoading = false;
+  Timer? _paymentTimeoutTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    PaymentUIService.retryAttempts = 0;
+  }
 
   Future<void> _handlePayment() async {
     final cartProvider = context.read<CartProvider>();
     final paymentProvider = context.read<PaymentProvider>();
     final currentAddress = context.read<AddressProvider>().address;
 
-    // --- Validations ---
     if (currentAddress == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add a shipping address.')),
-      );
-      return;
-    }
-    if (paymentProvider.selectedMethod == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please choose a payment method.')),
+      AppSnackbar.show(
+        context,
+        message: 'Please add a shipping address.',
+        type: SnackbarType.warning,
       );
       return;
     }
 
-    // --- M-Pesa phone number input ---
+    if (paymentProvider.selectedMethod == null) {
+      AppSnackbar.show(
+        context,
+        message: 'Please choose a payment method.',
+        type: SnackbarType.error,
+      );
+      return;
+    }
+
     if (paymentProvider.selectedMethod == 'mpesa') {
       if (paymentProvider.phoneNumber == null || paymentProvider.phoneNumber!.isEmpty) {
         final result = await showMpesaPhoneInputModal(context);
         if (!result || paymentProvider.phoneNumber == null || paymentProvider.phoneNumber!.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Mpesa phone number is required.')),
+          AppSnackbar.show(
+            context,
+            message: 'Mpesa phone number is required.',
+            type: SnackbarType.warning,
           );
           return;
         }
       }
     }
 
-    // --- Payment Logic ---
-    setState(() => _isLoading = true);
+    final amount = cartProvider.totalCartPrice;
+    final orderId = 'ORD-${DateTime.now().millisecondsSinceEpoch}';
+
+    PaymentUIService.showProcessingDialog(context, amount);
+
+    _paymentTimeoutTimer?.cancel();
+    _paymentTimeoutTimer = Timer(const Duration(seconds: 30), () async {
+      PaymentUIService.closeDialogIfOpen(context);
+      await PaymentUIService.showRetryDialog(context, amount, _handlePayment);
+    });
+
+    PaymentUIService.paymentTimeoutCallback = () {
+      _paymentTimeoutTimer?.cancel();
+    };
+
     try {
       await paymentProvider.initiatePayment(
-        amount: cartProvider.totalCartPrice,
+        amount: amount,
         currency: 'Ksh',
-        orderId: 'ORD-${DateTime.now().millisecondsSinceEpoch}',
+        orderId: orderId,
         paymentMethod: paymentProvider.selectedMethod!.toLowerCase(),
         phoneNumber: paymentProvider.selectedMethod == 'mpesa'
             ? paymentProvider.phoneNumber
             : null,
       );
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Payment initated,awaiting confirmation')),
-        );
     } catch (e) {
-      if (!mounted) return;
+      _paymentTimeoutTimer?.cancel();
+      PaymentUIService.closeDialogIfOpen(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred during payment:  ${paymentProvider.error}')),
+        SnackBar(
+          content: Text('Error during payment: ${paymentProvider.error}'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  @override
+  void dispose() {
+    _paymentTimeoutTimer?.cancel();
+    PaymentUIService.resetRetryAttempts();
+    super.dispose();
   }
 
   @override
@@ -85,103 +115,141 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final addressProvider = context.watch<AddressProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Checkout Details')),
+      appBar: AppBar(
+        title: const Text('Checkout Details'),
+        centerTitle: true,
+        backgroundColor: AppColors.primary,
+      ),
       backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.padding),
-            child: Column(
-              children: [
-                const OrderSummaryWidget(),
-                const SizedBox(height: 20),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.padding),
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const OrderSummaryWidget(),
+                      const SizedBox(height: 20),
 
-                // --- Shipping Address ---
-                Card(
-                  margin: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ListTile(
-                    title: const Text('Shipping Address'),
-                    subtitle: Text(addressProvider.displayAddress),
-                    trailing: const Icon(Icons.edit, color: AppColors.primary),
-                    onTap: () => context.push('/shipping-address'),
-                  ),
-                ),
-                const SizedBox(height: 12),
+                      _buildSectionCard(
+                        title: 'Shipping Address',
+                        subtitle: addressProvider.displayAddress,
+                        icon: Icons.edit_location_alt_outlined,
+                        onTap: () => context.push('/shipping-address'),
+                      ),
+                      const SizedBox(height: 12),
 
-                // --- Payment Method ---
-                Card(
-                  margin: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ListTile(
-                    title: const Text('Payment Method'),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(paymentProvider.selectedMethod ?? 'Not selected'),
-                        if (paymentProvider.selectedMethod == 'mpesa' &&
+                      _buildSectionCard(
+                        title: 'Payment Method',
+                        subtitle: paymentProvider.selectedMethod ?? 'Not selected',
+                        icon: Icons.payment_outlined,
+                        additionalInfo: (paymentProvider.selectedMethod == 'mpesa' &&
                             paymentProvider.phoneNumber != null &&
                             paymentProvider.phoneNumber!.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              'Phone: ${paymentProvider.phoneNumber}',
-                              style: const TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    trailing: const Icon(Icons.payment, color: AppColors.primary),
-                    onTap: () async {
-                      final previousMethod = paymentProvider.selectedMethod;
-                      await context.push('/payment-method');
-                      if (paymentProvider.selectedMethod != previousMethod) {
-                        paymentProvider.setPhoneNumber(null); // 🔁 Reset M-Pesa number
-                      }
-                    },
+                            ? 'Phone: ${paymentProvider.phoneNumber}'
+                            : null,
+                        onTap: () async {
+                          final previousMethod = paymentProvider.selectedMethod;
+                          await context.push('/payment-method');
+                          if (paymentProvider.selectedMethod != previousMethod) {
+                            paymentProvider.setPhoneNumber(null);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                    ],
                   ),
                 ),
-
-                const Spacer(),
-
-                // --- Pay Button ---
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    minimumSize: const Size.fromHeight(50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.lock_outline),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accent,
+                      foregroundColor: AppColors.text,
+                      minimumSize: const Size.fromHeight(50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
+                      ),
                     ),
-                  ),
-                  onPressed: _isLoading ? null : _handlePayment,
-                  child: const Text(
-                    'Proceed to Payment',
-                    style: TextStyle(
-                      color: AppColors.text,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                    onPressed: _handlePayment,
+                    label: const Text(
+                      'Proceed to Payment',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
+      ),
+    );
+  }
 
-          // --- Loading Overlay ---
-          if (_isLoading)
-            Container(
-              color: Colors.black.withOpacity(0.3),
-              alignment: Alignment.center,
-              child: const CircularProgressIndicator(),
-            ),
-        ],
+  Widget _buildSectionCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    String? additionalInfo,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Icon(icon, color: AppColors.primary),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(fontSize: 14, color: Colors.black87),
+                    ),
+                    if (additionalInfo != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          additionalInfo,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+            ],
+          ),
+        ),
       ),
     );
   }

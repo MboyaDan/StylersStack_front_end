@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:provider/provider.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+
 import 'package:stylerstack/models/cart_item.dart';
 import 'package:stylerstack/models/product_model.dart';
 import 'package:stylerstack/providers/cart_provider.dart';
+import 'package:stylerstack/utils/constants.dart';
+import 'package:stylerstack/widgets/appsnackwidget.dart';
 
 class ProductDetailsPage extends StatefulWidget {
   const ProductDetailsPage({required this.product, super.key});
-
   final ProductModel product;
 
   @override
@@ -15,71 +19,86 @@ class ProductDetailsPage extends StatefulWidget {
 
 class _ProductDetailsPageState extends State<ProductDetailsPage> {
   late final ProductModel product;
+  final _pageController = PageController();
 
   @override
   void initState() {
     super.initState();
     product = widget.product;
     product
-      ..selectedSize  = product.sizes.first
+      ..selectedSize = product.sizes.first
       ..selectedColor = product.colors.first;
   }
 
-  /* ─── Add-/Update-to-Cart Sheet ─── */
-
   Future<void> _showAddToCartSheet() async {
     final bool? added = await showModalBottomSheet<bool>(
-      context: context, // OK: used synchronously
+      context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (sheetContext) {
         return Padding(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 20,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Add to Cart?',
-                  style: Theme.of(sheetContext).textTheme.titleMedium),
+              const Icon(Icons.shopping_bag_outlined, size: 36, color: AppColors.primary),
+              const SizedBox(height: 12),
+              Text(
+                'Add this item to your cart?',
+                style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: 20),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      final cart = sheetContext.read<CartProvider>();
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final cart = sheetContext.read<CartProvider>();
+                        CartItemModel? existing;
+                        try {
+                          existing = cart.cartItems.firstWhere((e) => e.productId == product.id);
+                        } catch (_) {
+                          existing = null;
+                        }
 
-                      // does the item already exist?
-                      CartItemModel? existing;
-                      try {
-                        existing = cart.cartItems
-                            .firstWhere((e) => e.productId == product.id);
-                      } catch (_) {
-                        existing = null;
-                      }
+                        if (existing != null) {
+                          cart.updateCartItem(product.id, existing.quantity + 1);
+                        } else {
+                          cart.addToCart(
+                            productId: product.id,
+                            productName: product.name,
+                            productPrice: product.price,
+                            productImageUrl: product.images.first,
+                          );
+                        }
 
-                      if (existing != null) {
-                        cart.updateCartItem(
-                          product.id,
-                          existing.quantity + 1,
-                        );
-                      } else {
-                        cart.addToCart(
-                          productId: product.id,
-                          productName: product.name,
-                          productPrice: product.price,
-                          productImageUrl: product.images.first,
-                        );
-                      }
-
-                      // Close sheet and tell caller an item was added
-                      Navigator.pop(sheetContext, true);
-                    },
-                    child: const Text('Yes, Add'),
+                        Navigator.pop(sheetContext, true);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text("Yes, Add to Cart", style: TextStyle(color: Colors.white)),
+                    ),
                   ),
-                  OutlinedButton(
-                    onPressed: () => Navigator.pop(sheetContext, false),
-                    child: const Text('Cancel'),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(sheetContext, false),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text("Cancel"),
+                    ),
                   ),
                 ],
               ),
@@ -91,101 +110,200 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
 
     if (!mounted || added != true) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Product added to cart')),
+    AppSnackbar.show(
+      context,
+      message: 'Product added successfully',
+      type: SnackbarType.success,
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Product Details')),
-      body: SingleChildScrollView(
+      backgroundColor: const Color(0xFFF9F9F9),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.black),
+        title: const Text('Product Details', style: TextStyle(color: Colors.black)),
+      ),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.only(bottom: 16),
         child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              /* Images */
-              SizedBox(
-                height: 250,
-                child: PageView(
-                  children: product.images
-                      .map((img) => Image.network(img, fit: BoxFit.cover))
-                      .toList(),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: AppColors.background,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              const SizedBox(height: 20),
+              onPressed: _showAddToCartSheet,
+              icon: const Icon(Icons.shopping_bag, color: AppColors.text),
+              label: const Text('Add to Cart', style: TextStyle(color: AppColors.text)),
+            ),
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 700),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
 
-              /* Title & Rating */
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(product.name, style: theme.textTheme.headlineSmall),
-                  Row(
+                /// Image Carousel + Page Indicator + Hero Animation
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
                     children: [
-                      const Icon(Icons.star, color: Colors.amber),
-                      Text(product.rating.toString()),
+                      SizedBox(
+                        height: size.height * 0.4,
+                        child: PageView.builder(
+                          controller: _pageController,
+                          itemCount: product.images.length,
+                          itemBuilder: (_, index) {
+                            return Hero(
+                              tag: 'product_${product.id}',
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(
+                                  product.images[index],
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SmoothPageIndicator(
+                        controller: _pageController,
+                        count: product.images.length,
+                        effect: const ExpandingDotsEffect(
+                          dotHeight: 8,
+                          dotWidth: 8,
+                          activeDotColor: AppColors.primary,
+                          dotColor: Colors.grey,
+                        ),
+                      ),
                     ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(product.description),
-              const SizedBox(height: 20),
+                ),
 
-              /* Size */
-              Text('Select Size', style: theme.textTheme.titleSmall),
-              Wrap(
-                spacing: 8,
-                children: product.sizes.map((size) {
-                  return ChoiceChip(
-                    label: Text(size),
-                    selected: product.selectedSize == size,
-                    onSelected: (_) =>
-                        setState(() => product.selectedSize = size),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
+                const SizedBox(height: 24),
 
-              /* Color */
-              Text('Select Color', style: theme.textTheme.titleSmall),
-              Wrap(
-                spacing: 8,
-                children: product.colors.map((color) {
-                  return GestureDetector(
-                    onTap: () =>
-                        setState(() => product.selectedColor = color),
-                    child: CircleAvatar(
-                      backgroundColor: color,
-                      radius: 14,
-                      child: product.selectedColor == color
-                          ? const Icon(Icons.check,
-                          color: Colors.white, size: 16,)
-                          : null,
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
-
-              /* Price + Add-to-Cart */
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Total Price: \$${product.price.toStringAsFixed(2)}',
-                      style: theme.textTheme.titleMedium),
-                  ElevatedButton.icon(
-                    onPressed: _showAddToCartSheet,
-                    icon: const Icon(Icons.add_shopping_cart),
-                    label: const Text('Add to Cart'),
+                /// Title, Rating, Price
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.name,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          RatingBarIndicator(
+                            rating: product.rating.toDouble(),
+                            itemBuilder: (context, index) => const Icon(Icons.star, color: Colors.amber),
+                            itemCount: 5,
+                            itemSize: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text('${product.rating}', style: TextStyle(color: Colors.grey[700])),
+                          const Spacer(),
+                          Text(
+                            '\$${product.price.toStringAsFixed(2)}',
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        product.description,
+                        style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[800]),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ],
+                ),
+
+                const SizedBox(height: 24),
+
+                /// Size Selection
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Select Size", style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 10,
+                        children: product.sizes.map((size) {
+                          return ChoiceChip(
+                            label: Text(size),
+                            selected: product.selectedSize == size,
+                            onSelected: (_) => setState(() => product.selectedSize = size),
+                            selectedColor: AppColors.primary,
+                            labelStyle: TextStyle(
+                              color: product.selectedSize == size ? Colors.white : Colors.black,
+                            ),
+                            backgroundColor: Colors.grey[200],
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                /// Color Selection
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Select Color", style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 10,
+                        children: product.colors.map((color) {
+                          final isSelected = product.selectedColor == color;
+                          return GestureDetector(
+                            onTap: () => setState(() => product.selectedColor = color),
+                            child: CircleAvatar(
+                              backgroundColor: color,
+                              radius: 18,
+                              child: isSelected ? const Icon(Icons.check, color: Colors.white) : null,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),

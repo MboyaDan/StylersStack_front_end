@@ -58,18 +58,18 @@ class FavoriteItemAdapter extends TypeAdapter<FavoriteItem> {
 
 _$FavoriteItemImpl _$$FavoriteItemImplFromJson(Map<String, dynamic> json) =>
     _$FavoriteItemImpl(
-      productId: json['productId'] as String,
-      productName: json['productName'] as String,
-      imageUrl: json['imageUrl'] as String,
+      productId: json['product_id'] as String,
+      productName: json['product_name'] as String,
+      imageUrl: json['image_url'] as String,
       price: (json['price'] as num).toDouble(),
-      userId: json['userId'] as String,
+      userId: json['user_uid'] as String,
     );
 
 Map<String, dynamic> _$$FavoriteItemImplToJson(_$FavoriteItemImpl instance) =>
     <String, dynamic>{
-      'productId': instance.productId,
-      'productName': instance.productName,
-      'imageUrl': instance.imageUrl,
+      'product_id': instance.productId,
+      'product_name': instance.productName,
+      'image_url': instance.imageUrl,
       'price': instance.price,
-      'userId': instance.userId,
+      'user_uid': instance.userId,
     };

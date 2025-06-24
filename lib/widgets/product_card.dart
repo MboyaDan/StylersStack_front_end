@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:stylerstack/models/product_model.dart';
 
 class ProductCard extends StatelessWidget {
@@ -17,113 +18,144 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl     = product.images.isNotEmpty ? product.images.first : null;
+    final imageUrl = product.images.isNotEmpty ? product.images.first : null;
     final isOutOfStock = product.stock <= 0;
-    final hasDiscount  = (product.discount ?? 0) > 0;
+    final hasDiscount = (product.discount ?? 0) > 0;
+    final discountedPrice = (product.price * (1 - (product.discount ?? 0) / 100));
 
-    return Stack(
-      children: [
-        /* ─────────── CARD ─────────── */
-        Card(
-          elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onTap,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /* ---------- SQUARE IMAGE ---------- */
+                /// ---------- IMAGE ----------
                 AspectRatio(
                   aspectRatio: 1,
                   child: Stack(
+                    fit: StackFit.expand,
                     children: [
                       imageUrl != null
-                          ? Image.network(
-                        imageUrl,
+                          ? FadeInImage.assetNetwork(
+                        placeholder: ' assets/images/placeholder.jpg',
+                        image: imageUrl,
                         fit: BoxFit.cover,
-                        width: double.infinity,
-                        errorBuilder: (_, __, ___) =>
-                        const Center(child: Icon(Icons.broken_image, size: 40)),
-                        loadingBuilder: (c, child, progress) =>
-                        progress == null
-                            ? child
-                            : const Center(child: CircularProgressIndicator()),
                       )
                           : const Center(child: Icon(Icons.image_not_supported, size: 40)),
+
                       if (isOutOfStock)
                         Container(
-                          color: Colors.black.withOpacity(0.45),
+                          color: Colors.black.withAlpha((0.45 * 255).round()),
                           alignment: Alignment.center,
                           child: const Text(
                             'OUT OF STOCK',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+
+                      if (hasDiscount)
+                        Positioned(
+                          top: 8,
+                          left: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              '-${product.discount?.toInt()}%',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
+
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: InkWell(
+                          onTap: onToggleFavorite,
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: const BoxDecoration(
+                              color: Colors.white70,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              isFavorite ? Icons.favorite : Icons.favorite_border,
+                              color: isFavorite ? Colors.redAccent : Colors.grey,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
 
-                /* ---------- INFO SECTION ---------- */
+                /// ---------- PRODUCT INFO ----------
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(8),
-                    child: SingleChildScrollView(
-                      physics: const NeverScrollableScrollPhysics(), // scroll only if needed
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          /* Name */
-                          Text(
-                            product.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        /// Product Name
+                        Text(
+                          product.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
                           ),
-                          const SizedBox(height: 4),
+                        ),
 
-                          /* Price + discount */
-                          Row(
-                            children: [
+                        /// Price Row
+                        Row(
+                          children: [
+                            Text(
+                              'Ksh${(hasDiscount ? discountedPrice : product.price).toStringAsFixed(2)}',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (hasDiscount) ...[
+                              const SizedBox(width: 6),
                               Text(
                                 'Ksh${product.price.toStringAsFixed(2)}',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                              if (hasDiscount) ...[
-                                const SizedBox(width: 6),
-                                Text(
-                                  '-${product.discount?.toInt()}%',
-                                  style: const TextStyle(
-                                    color: Colors.redAccent,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                  decoration: TextDecoration.lineThrough,
                                 ),
-                              ],
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-
-                          /* Rating */
-                          Row(
-                            children: [
-                              const Icon(Icons.star, color: Colors.amber, size: 16),
-                              const SizedBox(width: 4),
-                              Text(
-                                product.rating.toString(),
-                                style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],
-                          ),
-                        ],
-                      ),
+                          ],
+                        ),
+
+                        /// Rating
+                        RatingBarIndicator(
+                          rating: product.rating.toDouble(),
+                          itemBuilder: (_, __) => const Icon(Icons.star, color: Colors.amber),
+                          itemSize: 14,
+                          unratedColor: Colors.grey[300],
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -131,51 +163,8 @@ class ProductCard extends StatelessWidget {
             ),
           ),
         ),
-
-        /* ---------- FAVORITE HEART ---------- */
-        Positioned(
-          top: 6,
-          right: 6,
-          child: InkWell(
-            onTap: onToggleFavorite,
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: Colors.white70,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: isFavorite ? Colors.redAccent : Colors.grey,
-                size: 20,
-              ),
-            ),
-          ),
-        ),
-
-        /* ---------- DISCOUNT BADGE ---------- */
-        if (hasDiscount)
-          Positioned(
-            top: 6,
-            left: 6,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.redAccent,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '-${product.discount?.toInt()}%',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ),
-      ],
+      ),
     );
   }
+
 }

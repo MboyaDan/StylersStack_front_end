@@ -21,14 +21,18 @@ FavoriteItem _$FavoriteItemFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$FavoriteItem {
   @HiveField(0)
+  @JsonKey(name: 'product_id')
   String get productId => throw _privateConstructorUsedError;
   @HiveField(1)
+  @JsonKey(name: 'product_name')
   String get productName => throw _privateConstructorUsedError;
   @HiveField(2)
+  @JsonKey(name: 'image_url')
   String get imageUrl => throw _privateConstructorUsedError;
   @HiveField(3)
   double get price => throw _privateConstructorUsedError;
   @HiveField(4)
+  @JsonKey(name: 'user_uid')
   String get userId => throw _privateConstructorUsedError;
 
   /// Serializes this FavoriteItem to a JSON map.
@@ -48,11 +52,11 @@ abstract class $FavoriteItemCopyWith<$Res> {
       _$FavoriteItemCopyWithImpl<$Res, FavoriteItem>;
   @useResult
   $Res call(
-      {@HiveField(0) String productId,
-      @HiveField(1) String productName,
-      @HiveField(2) String imageUrl,
+      {@HiveField(0) @JsonKey(name: 'product_id') String productId,
+      @HiveField(1) @JsonKey(name: 'product_name') String productName,
+      @HiveField(2) @JsonKey(name: 'image_url') String imageUrl,
       @HiveField(3) double price,
-      @HiveField(4) String userId});
+      @HiveField(4) @JsonKey(name: 'user_uid') String userId});
 }
 
 /// @nodoc
@@ -110,11 +114,11 @@ abstract class _$$FavoriteItemImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@HiveField(0) String productId,
-      @HiveField(1) String productName,
-      @HiveField(2) String imageUrl,
+      {@HiveField(0) @JsonKey(name: 'product_id') String productId,
+      @HiveField(1) @JsonKey(name: 'product_name') String productName,
+      @HiveField(2) @JsonKey(name: 'image_url') String imageUrl,
       @HiveField(3) double price,
-      @HiveField(4) String userId});
+      @HiveField(4) @JsonKey(name: 'user_uid') String userId});
 }
 
 /// @nodoc
@@ -165,29 +169,33 @@ class __$$FavoriteItemImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$FavoriteItemImpl implements _FavoriteItem {
   const _$FavoriteItemImpl(
-      {@HiveField(0) required this.productId,
-      @HiveField(1) required this.productName,
-      @HiveField(2) required this.imageUrl,
+      {@HiveField(0) @JsonKey(name: 'product_id') required this.productId,
+      @HiveField(1) @JsonKey(name: 'product_name') required this.productName,
+      @HiveField(2) @JsonKey(name: 'image_url') required this.imageUrl,
       @HiveField(3) required this.price,
-      @HiveField(4) required this.userId});
+      @HiveField(4) @JsonKey(name: 'user_uid') required this.userId});
 
   factory _$FavoriteItemImpl.fromJson(Map<String, dynamic> json) =>
       _$$FavoriteItemImplFromJson(json);
 
   @override
   @HiveField(0)
+  @JsonKey(name: 'product_id')
   final String productId;
   @override
   @HiveField(1)
+  @JsonKey(name: 'product_name')
   final String productName;
   @override
   @HiveField(2)
+  @JsonKey(name: 'image_url')
   final String imageUrl;
   @override
   @HiveField(3)
   final double price;
   @override
   @HiveField(4)
+  @JsonKey(name: 'user_uid')
   final String userId;
 
   @override
@@ -233,29 +241,39 @@ class _$FavoriteItemImpl implements _FavoriteItem {
 
 abstract class _FavoriteItem implements FavoriteItem {
   const factory _FavoriteItem(
-      {@HiveField(0) required final String productId,
-      @HiveField(1) required final String productName,
-      @HiveField(2) required final String imageUrl,
+      {@HiveField(0)
+      @JsonKey(name: 'product_id')
+      required final String productId,
+      @HiveField(1)
+      @JsonKey(name: 'product_name')
+      required final String productName,
+      @HiveField(2) @JsonKey(name: 'image_url') required final String imageUrl,
       @HiveField(3) required final double price,
-      @HiveField(4) required final String userId}) = _$FavoriteItemImpl;
+      @HiveField(4)
+      @JsonKey(name: 'user_uid')
+      required final String userId}) = _$FavoriteItemImpl;
 
   factory _FavoriteItem.fromJson(Map<String, dynamic> json) =
       _$FavoriteItemImpl.fromJson;
 
   @override
   @HiveField(0)
+  @JsonKey(name: 'product_id')
   String get productId;
   @override
   @HiveField(1)
+  @JsonKey(name: 'product_name')
   String get productName;
   @override
   @HiveField(2)
+  @JsonKey(name: 'image_url')
   String get imageUrl;
   @override
   @HiveField(3)
   double get price;
   @override
   @HiveField(4)
+  @JsonKey(name: 'user_uid')
   String get userId;
 
   /// Create a copy of FavoriteItem

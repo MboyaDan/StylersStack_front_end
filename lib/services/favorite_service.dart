@@ -9,12 +9,13 @@ class FavoriteService {
   /// Fetch all favorite items for the current user from the API
   Future<List<FavoriteItem>> fetchFavorites(String userId) async {
     try {
-      final Response response = await _apiService.getRequest('/favorites');
+      //  Use trailing slash to avoid 307 redirect
+      final Response response = await _apiService.getRequest('/favorites/');
 
       final List<dynamic> data = response.data;
-      return data
-          .map((item) => FavoriteItem.fromJson(item).copyWith(userId: userId))
-          .toList();
+      return List<FavoriteItem>.from(
+        data.map((item) => FavoriteItem.fromJson(item).copyWith(userId: userId)),
+      );
     } on DioException catch (e) {
       throw Exception('Failed to load favorites: ${e.message}');
     }
@@ -23,9 +24,10 @@ class FavoriteService {
   /// Add a product to the favorites list
   Future<void> addFavorite(FavoriteItem favoriteItem) async {
     try {
-      final response = await _apiService.postRequest('favorites', favoriteItem.toJson());
+      //  Use trailing slash to avoid 307 redirect
+      final response = await _apiService.postRequest('/favorites/', favoriteItem.toJson());
 
-      if (response.statusCode != 200) {
+      if (response.statusCode != 200 && response.statusCode != 201) {
         throw Exception('Failed to add item to favorites: ${response.statusMessage}');
       }
     } on DioException catch (e) {
@@ -36,9 +38,9 @@ class FavoriteService {
   /// Remove a product from the favorites list by product ID
   Future<void> removeFavorite(String productId) async {
     try {
-      final response = await _apiService.deleteRequest('favorites/$productId');
+      final response = await _apiService.deleteRequest('/favorites/$productId');
 
-      if (response.statusCode != 200) {
+      if (response.statusCode != 200 && response.statusCode != 204) {
         throw Exception('Failed to remove item from favorites: ${response.statusMessage}');
       }
     } on DioException catch (e) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stylerstack/providers/address_provider.dart';
 import 'package:stylerstack/utils/constants.dart';
+import 'package:stylerstack/widgets/appsnackwidget.dart';
 import '../../providers/auth_provider.dart';
 
 class ShippingAddressScreen extends StatefulWidget {
@@ -58,9 +59,12 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
         if (uid != null) {
           await addressProvider.editAddress(_addressController.text, uid);
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Address saved successfully')),
+          AppSnackbar.show(
+            context,
+            message: 'Address added successfully',
+            type: SnackbarType.success,
           );
+
           Navigator.pop(context);
         } else {
           throw 'User ID not found';
