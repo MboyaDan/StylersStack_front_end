@@ -11,6 +11,7 @@ import 'package:stylerstack/providers/cart_provider.dart';
 import 'package:stylerstack/providers/favorite_provider.dart';
 import 'package:stylerstack/providers/location_provider.dart';
 import 'package:stylerstack/providers/notification_provider.dart';
+import 'package:stylerstack/providers/order_provider.dart';
 import 'package:stylerstack/providers/product_provider.dart';
 import 'package:stylerstack/providers/theme_provider.dart';
 import 'package:stylerstack/providers/payment_provider.dart';
@@ -133,7 +134,7 @@ class StyleStackApp extends StatelessWidget {
           create: (context) => CartProvider(context.read<ApiService>()),
           update: (_, api, __) => CartProvider(api),
         ),
-
+//
         /// Address Provider
         ChangeNotifierProxyProvider2<AuthProvider, ApiService, AddressProvider>(
           create: (context) {
@@ -151,7 +152,11 @@ class StyleStackApp extends StatelessWidget {
           },
         ),
 
-        /// Notification Provider
+        /// order Provider
+        ChangeNotifierProxyProvider<ApiService, OrderProvider>(
+          create: (context) => OrderProvider(context.read<ApiService>()),
+          update: (_, api, previous) => previous!..updateApi(api),
+        ),
     /// Notification Provider
     ChangeNotifierProxyProvider<ApiService, NotificationProvider>(
       create: (context) {

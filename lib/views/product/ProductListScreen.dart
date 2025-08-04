@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:stylerstack/providers/product_provider.dart';
 import 'package:stylerstack/providers/favorite_provider.dart';
 import 'package:stylerstack/models/favorite_item.dart';
+import 'package:stylerstack/utils/constants.dart';
 import 'package:stylerstack/widgets/product_card.dart';
 
 class ProductListScreen extends StatelessWidget {
@@ -18,7 +19,9 @@ class ProductListScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("All Products"),
+        backgroundColor: AppColors.background,
+        title: const Text("All Products",
+          style: TextStyle(color: Colors.black45),),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {

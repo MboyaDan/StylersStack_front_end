@@ -46,7 +46,7 @@ class ProductCard extends StatelessWidget {
                     children: [
                       imageUrl != null
                           ? FadeInImage.assetNetwork(
-                        placeholder: ' assets/images/placeholder.jpg',
+                        placeholder: ' assets/images/placeholder2.jpg',
                         image: imageUrl,
                         fit: BoxFit.cover,
                       )

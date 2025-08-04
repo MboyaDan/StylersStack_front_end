@@ -7,49 +7,43 @@ import 'package:stylerstack/models/favorite_item.dart';
 import 'package:stylerstack/services/favorite_service.dart';
 
 class FavoriteProvider with ChangeNotifier {
-  // ────────── Hive ──────────
   final Box<FavoriteItem> _box;
-
-  // ────────── Services ──────────
   FavoriteService _favoriteService;
 
-  // ────────── State ──────────
   List<FavoriteItem> _favorites = [];
   List<FavoriteItem> get favorites => _favorites;
 
-  /// Safely gets UID or throws
+  StreamSubscription? _watchSubscription;
+
+  FavoriteProvider(this._favoriteService, this._box) {
+    _watchSubscription = _box.watch().listen((_) => _loadFromCache());
+    _loadFromCache(); // Load initially
+  }
+
+  int get favoriteCount => _favorites.length;
+
+  void updateService(FavoriteService service) {
+    _favoriteService = service;
+  }
+
   String get _uid {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) throw StateError('User is not logged in');
     return uid;
   }
 
-  /* ---------- Constructor ---------- */
-  FavoriteProvider(this._favoriteService, this._box) {
-    _box.watch().listen((_) => _loadFromCache());
-  }
-
-  int get favoriteCount => _favorites.length;
-
-  /// Optional: allows swapping service if needed (used in Provider `update`)
-  void updateService(FavoriteService service) {
-    _favoriteService = service;
-  }
-
-  /* ---------- PUBLIC API ---------- */
-
-  /// Load from local cache, then refresh from backend
   Future<void> loadFavorites() async {
-    _loadFromCache();                  // Instant load
-    unawaited(_refreshFromBackend()); // Silent refresh
+    _loadFromCache();
+    unawaited(_refreshFromBackend());
   }
 
   Future<void> addFavorite(FavoriteItem fav) async {
     try {
       final uid = _uid;
       final favWithUid = fav.copyWith(userId: uid);
+      final key = _key(uid, fav.productId);
 
-      await _box.put(_key(uid, fav.productId), favWithUid);
+      await _box.put(key, favWithUid);
 
       if (!_favorites.any((f) => f.productId == fav.productId)) {
         _favorites.add(favWithUid);
@@ -65,8 +59,9 @@ class FavoriteProvider with ChangeNotifier {
   Future<void> removeFavorite(String productId) async {
     try {
       final uid = _uid;
+      final key = _key(uid, productId);
 
-      await _box.delete(_key(uid, productId));
+      await _box.delete(key);
       _favorites.removeWhere((f) => f.productId == productId);
       notifyListeners();
 
@@ -76,13 +71,23 @@ class FavoriteProvider with ChangeNotifier {
     }
   }
 
+  Future<void> toggleFavorite(FavoriteItem item) async {
+    if (isProductFavorite(item.productId)) {
+      await removeFavorite(item.productId);
+    } else {
+      await addFavorite(item);
+    }
+  }
+
   Future<void> clearFavoritesOnLogout() async {
     try {
-      final uid = _uid;
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null) return;
 
       final ids = _box.keys
           .where((k) => k.toString().startsWith('${uid}_'))
           .toList();
+
       await _box.deleteAll(ids);
       _favorites.clear();
       notifyListeners();
@@ -93,8 +98,6 @@ class FavoriteProvider with ChangeNotifier {
 
   bool isProductFavorite(String productId) =>
       _favorites.any((f) => f.productId == productId);
-
-  /* ---------- INTERNAL Helpers ---------- */
 
   void _loadFromCache() {
     try {
@@ -113,14 +116,13 @@ class FavoriteProvider with ChangeNotifier {
   Future<void> _refreshFromBackend() async {
     try {
       final uid = _uid;
-
       final remoteFavs = await _favoriteService.fetchFavorites(uid);
 
       final entries = {
         for (var f in remoteFavs) _key(uid, f.productId): f,
       };
-      await _box.putAll(entries);
 
+      await _box.putAll(entries);
       _favorites = remoteFavs;
       notifyListeners();
     } catch (e, st) {
@@ -129,4 +131,10 @@ class FavoriteProvider with ChangeNotifier {
   }
 
   String _key(String uid, String productId) => '${uid}_$productId';
+
+  @override
+  void dispose() {
+    _watchSubscription?.cancel();
+    super.dispose();
+  }
 }

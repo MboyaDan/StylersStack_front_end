@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:stylerstack/main.dart';
+import 'package:stylerstack/providers/Notification_provider.dart';
 import 'package:stylerstack/widgets/appsnackwidget.dart';
 import 'package:stylerstack/widgets/mpesa_input_widget.dart';
 import 'package:stylerstack/providers/cart_provider.dart';
@@ -23,12 +25,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Timer? _paymentTimeoutTimer;
 
   @override
+  @override
   void initState() {
     super.initState();
     PaymentUIService.retryAttempts = 0;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationProvider.resetFlag();
+    });
   }
 
+
   Future<void> _handlePayment() async {
+
+    final notifProvider = context.read<NotificationProvider?>();
+    notifProvider?.resetNavigatedToSuccess();
+
     final cartProvider = context.read<CartProvider>();
     final paymentProvider = context.read<PaymentProvider>();
     final currentAddress = context.read<AddressProvider>().address;
@@ -90,12 +102,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ? paymentProvider.phoneNumber
             : null,
       );
-    } catch (e) {
+    }  catch (e, stack) {
       _paymentTimeoutTimer?.cancel();
       PaymentUIService.closeDialogIfOpen(context);
+
+      debugPrint("❌ Caught exception during payment: $e");
+      debugPrint("📌 Stacktrace: $stack");
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error during payment: ${paymentProvider.error}'),
+          content: Text('Error during payment: $e'),
           backgroundColor: Colors.redAccent,
         ),
       );

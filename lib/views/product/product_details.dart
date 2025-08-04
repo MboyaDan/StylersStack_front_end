@@ -25,9 +25,12 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
   void initState() {
     super.initState();
     product = widget.product;
-    product
-      ..selectedSize = product.sizes.first
-      ..selectedColor = product.colors.first;
+    if (product.sizes.isNotEmpty) {
+      product.selectedSize = product.sizes.first;
+    }
+    if (product.colors.isNotEmpty) {
+      product.selectedColor = product.colors.first;
+    }
   }
 
   Future<void> _showAddToCartSheet() async {
@@ -75,7 +78,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                             productId: product.id,
                             productName: product.name,
                             productPrice: product.price,
-                            productImageUrl: product.images.first,
+                            productImageUrl: product.images.isNotEmpty ? product.images.first : "",
                           );
                         }
 
@@ -126,9 +129,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
       backgroundColor: const Color(0xFFF9F9F9),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
         iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text('Product Details', style: TextStyle(color: Colors.black)),
+        title: const Text('Product Details', style: TextStyle(color: Colors.black45)),
       ),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.only(bottom: 16),
@@ -158,15 +161,18 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
-                /// Image Carousel + Page Indicator + Hero Animation
+                /// Image Carousel or Placeholder
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
                     children: [
                       SizedBox(
                         height: size.height * 0.4,
-                        child: PageView.builder(
+                        child: product.images.isEmpty
+                            ? const Center(
+                          child: Icon(Icons.image_not_supported, size: 80, color: Colors.grey),
+                        )
+                            : PageView.builder(
                           controller: _pageController,
                           itemCount: product.images.length,
                           itemBuilder: (_, index) {
@@ -178,6 +184,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                                   product.images[index],
                                   fit: BoxFit.cover,
                                   width: double.infinity,
+                                  errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 80),
                                 ),
                               ),
                             );
@@ -185,16 +192,17 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      SmoothPageIndicator(
-                        controller: _pageController,
-                        count: product.images.length,
-                        effect: const ExpandingDotsEffect(
-                          dotHeight: 8,
-                          dotWidth: 8,
-                          activeDotColor: AppColors.primary,
-                          dotColor: Colors.grey,
+                      if (product.images.isNotEmpty)
+                        SmoothPageIndicator(
+                          controller: _pageController,
+                          count: product.images.length,
+                          effect: const ExpandingDotsEffect(
+                            dotHeight: 8,
+                            dotWidth: 8,
+                            activeDotColor: AppColors.primary,
+                            dotColor: Colors.grey,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -219,7 +227,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                         children: [
                           RatingBarIndicator(
                             rating: product.rating.toDouble(),
-                            itemBuilder: (context, index) => const Icon(Icons.star, color: Colors.amber),
+                            itemBuilder: (context, index) =>
+                            const Icon(Icons.star, color: Colors.amber),
                             itemCount: 5,
                             itemSize: 20,
                           ),
@@ -227,7 +236,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                           Text('${product.rating}', style: TextStyle(color: Colors.grey[700])),
                           const Spacer(),
                           Text(
-                            '\$${product.price.toStringAsFixed(2)}',
+                            'Ksh${product.price.toStringAsFixed(2)}',
                             style: theme.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: Colors.black,
@@ -247,59 +256,63 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                 const SizedBox(height: 24),
 
                 /// Size Selection
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Select Size", style: theme.textTheme.titleMedium),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 10,
-                        children: product.sizes.map((size) {
-                          return ChoiceChip(
-                            label: Text(size),
-                            selected: product.selectedSize == size,
-                            onSelected: (_) => setState(() => product.selectedSize = size),
-                            selectedColor: AppColors.primary,
-                            labelStyle: TextStyle(
-                              color: product.selectedSize == size ? Colors.white : Colors.black,
-                            ),
-                            backgroundColor: Colors.grey[200],
-                          );
-                        }).toList(),
-                      ),
-                    ],
+                if (product.sizes.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Select Size", style: theme.textTheme.titleMedium),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 10,
+                          children: product.sizes.map((size) {
+                            return ChoiceChip(
+                              label: Text(size),
+                              selected: product.selectedSize == size,
+                              onSelected: (_) => setState(() => product.selectedSize = size),
+                              selectedColor: AppColors.primary,
+                              labelStyle: TextStyle(
+                                color: product.selectedSize == size ? Colors.white : Colors.black,
+                              ),
+                              backgroundColor: Colors.grey[200],
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
 
                 const SizedBox(height: 24),
 
                 /// Color Selection
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Select Color", style: theme.textTheme.titleMedium),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 10,
-                        children: product.colors.map((color) {
-                          final isSelected = product.selectedColor == color;
-                          return GestureDetector(
-                            onTap: () => setState(() => product.selectedColor = color),
-                            child: CircleAvatar(
-                              backgroundColor: color,
-                              radius: 18,
-                              child: isSelected ? const Icon(Icons.check, color: Colors.white) : null,
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
+                if (product.colors.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Select Color", style: theme.textTheme.titleMedium),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 10,
+                          children: product.colors.map((color) {
+                            final isSelected = product.selectedColor == color;
+                            return GestureDetector(
+                              onTap: () => setState(() => product.selectedColor = color),
+                              child: CircleAvatar(
+                                backgroundColor: color,
+                                radius: 18,
+                                child: isSelected
+                                    ? const Icon(Icons.check, color: Colors.white)
+                                    : null,
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
 
                 const SizedBox(height: 32),
               ],

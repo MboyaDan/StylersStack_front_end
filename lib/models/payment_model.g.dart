@@ -9,7 +9,6 @@ part of 'payment_model.dart';
 _$PaymentModelImpl _$$PaymentModelImplFromJson(Map<String, dynamic> json) =>
     _$PaymentModelImpl(
       paymentIntentId: json['payment_intent_id'] as String?,
-      orderId: json['order_id'] as String,
       amount: (json['amount'] as num).toDouble(),
       currency: json['currency'] as String,
       status: json['status'] as String,
@@ -20,7 +19,6 @@ _$PaymentModelImpl _$$PaymentModelImplFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$$PaymentModelImplToJson(_$PaymentModelImpl instance) =>
     <String, dynamic>{
       'payment_intent_id': instance.paymentIntentId,
-      'order_id': instance.orderId,
       'amount': instance.amount,
       'currency': instance.currency,
       'status': instance.status,

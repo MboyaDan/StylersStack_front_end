@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:stylerstack/models/category_type.dart';
+import 'package:stylerstack/models/product_model.dart';
 import 'package:stylerstack/providers/product_provider.dart';
 import 'package:stylerstack/services/connectivity_service.dart';
 import 'package:stylerstack/widgets/search_bar/search_bar_input.dart';
 import 'package:stylerstack/widgets/search_bar/search_suggestions.dart';
+import 'package:go_router/go_router.dart';
 
 class SearchBarWidget extends StatefulWidget {
   final CategoryType? initialCategory;
@@ -20,7 +22,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   final _searchSubject = BehaviorSubject<String>.seeded('');
   final _categorySubject = BehaviorSubject<CategoryType?>();
 
-  late final Stream<List<String>> _suggestionsStream;
+  late final Stream<List<ProductModel>> _suggestedProductsStream;
   late final ProductProvider productProvider;
 
   @override
@@ -32,7 +34,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
       widget.initialCategory ?? productProvider.selectedCategory,
     );
 
-    _suggestionsStream = Rx.combineLatest2<String, CategoryType?, void>(
+    _suggestedProductsStream = Rx.combineLatest2<String, CategoryType?, void>(
       _searchSubject.debounceTime(const Duration(milliseconds: 400)).distinct(),
       _categorySubject.distinct(),
           (query, category) {
@@ -40,7 +42,7 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
       },
     ).switchMap(
           (_) => productProvider.searchedProductsStream.map(
-            (products) => products.map((p) => p.name).toSet().take(5).toList(),
+            (products) => products.toSet().take(5).toList(),
       ),
     );
 
@@ -114,20 +116,32 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
                   },
                 ),
                 const SizedBox(height: 10),
-                StreamBuilder<List<String>>(
-                  stream: _suggestionsStream,
+                StreamBuilder<List<ProductModel>>(
+                  stream: _suggestedProductsStream,
                   builder: (context, snapshot) {
+                    final products = snapshot.data ?? [];
                     return SearchSuggestions(
-                      isLoading:
-                      snapshot.connectionState == ConnectionState.waiting,
-                      suggestions: snapshot.data ?? [],
-                      onSuggestionTap: (s) {
-                        _controller.text = s;
-                        _searchSubject.add(s);
+                      isLoading: snapshot.connectionState == ConnectionState.waiting,
+                      suggestions: products.map((p) => p.name).toList(),
+                      onSuggestionTap: (name) async {
+                        ProductModel? tappedProduct;
+                        try {
+                          tappedProduct = products.firstWhere((p) => p.name == name);
+                        } catch (_) {
+                          tappedProduct = null;
+                        }
+
+                        if (tappedProduct != null) {
+                          await context.push(
+                            '/product-details',
+                            extra: tappedProduct,
+                          );
+                        }
                       },
                     );
                   },
                 ),
+
               ],
             ),
           ),

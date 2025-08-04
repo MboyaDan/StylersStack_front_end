@@ -58,6 +58,10 @@ int get cartCount => cartItems.fold(0,(sum,item)=> sum + item.quantity);
     notifyListeners();
   }
 
+  final List<CartItemModel> _items = [];
+
+  List<CartItemModel> get items => _items;
+
   /*──────────────────── API ↔ Hive sync ────────────────────*/
 
   Future<void> fetchCartFromApi() async {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
+import 'package:stylerstack/utils/constants.dart';
 import 'package:vibration/vibration.dart';
 import 'package:stylerstack/widgets/payment_processing_dialog.dart';
 
@@ -97,11 +98,16 @@ class PaymentUIService {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: const Text('Cancel',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
+              backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),

@@ -22,8 +22,6 @@ PaymentModel _$PaymentModelFromJson(Map<String, dynamic> json) {
 mixin _$PaymentModel {
   @JsonKey(name: 'payment_intent_id')
   String? get paymentIntentId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'order_id')
-  String get orderId => throw _privateConstructorUsedError;
   double get amount => throw _privateConstructorUsedError;
   String get currency => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
@@ -50,7 +48,6 @@ abstract class $PaymentModelCopyWith<$Res> {
   @useResult
   $Res call(
       {@JsonKey(name: 'payment_intent_id') String? paymentIntentId,
-      @JsonKey(name: 'order_id') String orderId,
       double amount,
       String currency,
       String status,
@@ -74,7 +71,6 @@ class _$PaymentModelCopyWithImpl<$Res, $Val extends PaymentModel>
   @override
   $Res call({
     Object? paymentIntentId = freezed,
-    Object? orderId = null,
     Object? amount = null,
     Object? currency = null,
     Object? status = null,
@@ -86,10 +82,6 @@ class _$PaymentModelCopyWithImpl<$Res, $Val extends PaymentModel>
           ? _value.paymentIntentId
           : paymentIntentId // ignore: cast_nullable_to_non_nullable
               as String?,
-      orderId: null == orderId
-          ? _value.orderId
-          : orderId // ignore: cast_nullable_to_non_nullable
-              as String,
       amount: null == amount
           ? _value.amount
           : amount // ignore: cast_nullable_to_non_nullable
@@ -124,7 +116,6 @@ abstract class _$$PaymentModelImplCopyWith<$Res>
   @useResult
   $Res call(
       {@JsonKey(name: 'payment_intent_id') String? paymentIntentId,
-      @JsonKey(name: 'order_id') String orderId,
       double amount,
       String currency,
       String status,
@@ -146,7 +137,6 @@ class __$$PaymentModelImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? paymentIntentId = freezed,
-    Object? orderId = null,
     Object? amount = null,
     Object? currency = null,
     Object? status = null,
@@ -158,10 +148,6 @@ class __$$PaymentModelImplCopyWithImpl<$Res>
           ? _value.paymentIntentId
           : paymentIntentId // ignore: cast_nullable_to_non_nullable
               as String?,
-      orderId: null == orderId
-          ? _value.orderId
-          : orderId // ignore: cast_nullable_to_non_nullable
-              as String,
       amount: null == amount
           ? _value.amount
           : amount // ignore: cast_nullable_to_non_nullable
@@ -191,7 +177,6 @@ class __$$PaymentModelImplCopyWithImpl<$Res>
 class _$PaymentModelImpl implements _PaymentModel {
   const _$PaymentModelImpl(
       {@JsonKey(name: 'payment_intent_id') this.paymentIntentId,
-      @JsonKey(name: 'order_id') required this.orderId,
       required this.amount,
       required this.currency,
       required this.status,
@@ -204,9 +189,6 @@ class _$PaymentModelImpl implements _PaymentModel {
   @override
   @JsonKey(name: 'payment_intent_id')
   final String? paymentIntentId;
-  @override
-  @JsonKey(name: 'order_id')
-  final String orderId;
   @override
   final double amount;
   @override
@@ -222,7 +204,7 @@ class _$PaymentModelImpl implements _PaymentModel {
 
   @override
   String toString() {
-    return 'PaymentModel(paymentIntentId: $paymentIntentId, orderId: $orderId, amount: $amount, currency: $currency, status: $status, paymentMethod: $paymentMethod, phoneNumber: $phoneNumber)';
+    return 'PaymentModel(paymentIntentId: $paymentIntentId, amount: $amount, currency: $currency, status: $status, paymentMethod: $paymentMethod, phoneNumber: $phoneNumber)';
   }
 
   @override
@@ -232,7 +214,6 @@ class _$PaymentModelImpl implements _PaymentModel {
             other is _$PaymentModelImpl &&
             (identical(other.paymentIntentId, paymentIntentId) ||
                 other.paymentIntentId == paymentIntentId) &&
-            (identical(other.orderId, orderId) || other.orderId == orderId) &&
             (identical(other.amount, amount) || other.amount == amount) &&
             (identical(other.currency, currency) ||
                 other.currency == currency) &&
@@ -245,7 +226,7 @@ class _$PaymentModelImpl implements _PaymentModel {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, paymentIntentId, orderId, amount,
+  int get hashCode => Object.hash(runtimeType, paymentIntentId, amount,
       currency, status, paymentMethod, phoneNumber);
 
   /// Create a copy of PaymentModel
@@ -267,7 +248,6 @@ class _$PaymentModelImpl implements _PaymentModel {
 abstract class _PaymentModel implements PaymentModel {
   const factory _PaymentModel(
           {@JsonKey(name: 'payment_intent_id') final String? paymentIntentId,
-          @JsonKey(name: 'order_id') required final String orderId,
           required final double amount,
           required final String currency,
           required final String status,
@@ -281,9 +261,6 @@ abstract class _PaymentModel implements PaymentModel {
   @override
   @JsonKey(name: 'payment_intent_id')
   String? get paymentIntentId;
-  @override
-  @JsonKey(name: 'order_id')
-  String get orderId;
   @override
   double get amount;
   @override
