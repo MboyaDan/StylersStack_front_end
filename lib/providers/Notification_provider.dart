@@ -166,7 +166,7 @@ class NotificationProvider with ChangeNotifier {
 
         if (!_hasNavigatedToSuccess && totalAmount != null) {
           try {
-            final cartItems = cartProvider.items.map((item) {
+            final cartItems = cartProvider.cartItems.map((item) {
               debugPrint("🛒 Cart item: ${item.productName}, Qty: ${item.quantity}, Price: ${item.productPrice}");
               return OrderItem(
                 productName: item.productName,
@@ -176,6 +176,10 @@ class NotificationProvider with ChangeNotifier {
             }).toList();
 
             final order = OrderModel(
+              id: '',
+              userUid: '',
+              status: 'pending',
+              createdAt: DateTime.now(),
               totalAmount: totalAmount,
               paymentId: paymentId,
               items: cartItems,

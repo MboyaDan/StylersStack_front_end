@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:stylerstack/utils/constants.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
-import 'package:stylerstack/providers/address_provider.dart';
-import 'package:stylerstack/widgets/section_card_widget.dart';
+import '../../providers/address_provider.dart';
+import '../../utils/constants.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -41,7 +40,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final addressProvider = context.watch<AddressProvider>();
 
     final user = authProvider.user;
-    final displayName = user?.email?.split('@').first ?? 'User';
+    final displayName = user?.email.split('@').first ?? 'User';
     final email = user?.email ?? 'No email';
     final currentAddress = addressProvider.address?.address;
 
@@ -52,113 +51,112 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       body: _isSigningOut
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            /// --- Profile Info Card ---
-            Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              elevation: 3,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                      child: Text(
-                        displayName[0].toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 32,
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
-                        ),
-                      ),
+          : ListView(
+        children: [
+          // ===== Profile Header =====
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20), // Using your static constant
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 45,
+                  backgroundColor:AppColors.background,
+                  child: Text(
+                    displayName[0].toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 36,
+                      color: AppColors.text,
                     ),
-                    const SizedBox(width: 20),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          displayName,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          email,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            /// --- Shipping Address Section ---
-            SectionCard(
-              title: 'Shipping Address',
-              action: TextButton(
-                onPressed: () => context.push('/shipping-address'),
-                child: const Text("Edit"),
-              ),
-              child: Text(
-                currentAddress ?? 'No address saved yet. Add one now!',
-                style: TextStyle(
-                  color: currentAddress != null ? Colors.black87 : Colors.red,
-                  fontStyle: currentAddress == null ? FontStyle.italic : FontStyle.normal,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            SectionCard(
-              title: 'Appearance',
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Dark Mode',
-                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
-                  Switch(
-                    value: themeProvider.isDarkMode,
-                    onChanged: (_) => themeProvider.toggleTheme(),
-                    activeColor: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  displayName,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  email,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 16),
+
+                // Track My Orders button
+                ElevatedButton.icon(
+                  onPressed: () => context.push('/orders'),
+                  icon: const Icon(
+                    Icons.local_shipping_outlined,
+                    color: AppColors.text,
+                    size: 26,
+                  ),
+
+                  label: const Text(
+                    "Track My Orders",
+                    style: TextStyle(
+                        color: AppColors.text,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                    backgroundColor: AppColors.background,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+
+          const SizedBox(height: 20),
+
+          // ===== Settings Section =====
+          ListTile(
+            leading: const Icon(Icons.location_on_outlined),
+            title: const Text('Shipping Address'),
+            subtitle: Text(
+              currentAddress ?? 'No address saved yet. Add one now!',
+              style: TextStyle(
+                color: currentAddress != null ? Colors.black87 : Colors.red,
+                fontStyle:
+                currentAddress == null ? FontStyle.italic : FontStyle.normal,
               ),
             ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/shipping-address'),
+          ),
+          const Divider(),
 
+          ListTile(
+            leading: const Icon(Icons.dark_mode_outlined),
+            title: const Text('Dark Mode'),
+            trailing: Switch(
+              value: themeProvider.isDarkMode,
+              onChanged: (_) => themeProvider.toggleTheme(),
+            ),
+          ),
+          const Divider(),
 
-            const SizedBox(height: 40),
-
-            /// --- Logout Button ---
-            ElevatedButton.icon(
-              onPressed: _isSigningOut ? null : () => _handleLogout(authProvider),
-              icon: const Icon(Icons.logout,
-                color: AppColors.text,
-              ),
-              label: const Text(
-                'Logout',
-                style: TextStyle(
-                  color: AppColors.text,
-
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.background,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 4,
-                shadowColor: Colors.black45,
-              ),
-            )
-          ],
-        ),
+          // ===== Logout Button =====
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.red),
+            title: const Text(
+              'Logout',
+              style: TextStyle(color: Colors.red),
+            ),
+            onTap: _isSigningOut
+                ? null
+                : () => _handleLogout(authProvider),
+          ),
+        ],
       ),
     );
   }

@@ -18,6 +18,8 @@ import 'package:stylerstack/views/cart/checkout_screen.dart';
 import 'package:stylerstack/views/cart/my_cart_screen.dart';
 import 'package:stylerstack/views/cart/payment_method.dart';
 import 'package:stylerstack/views/cart/shipping_address.dart';
+import 'package:stylerstack/views/product/order_details_screen.dart';
+import 'package:stylerstack/views/product/order_screen.dart';
 import 'package:stylerstack/views/product/product_details.dart';
 
 GoRouter createRouter(AuthProvider authProvider) {
@@ -129,6 +131,18 @@ GoRouter createRouter(AuthProvider authProvider) {
         path: '/payment-success',
         builder: (context, state) => const PaymentSuccessScreen(),
       ),
+      GoRoute(
+        path: '/orders',
+        builder: (context, state) => const OrdersScreen(),
+      ),
+      GoRoute(
+        path: '/orderdetailscreen',
+        builder: (context, state) {
+          final orderId = state.extra as String;
+          return OrderDetailsScreen(orderId: orderId);
+        },
+      ),
+
 
     ],
   );
