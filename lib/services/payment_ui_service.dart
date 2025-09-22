@@ -3,6 +3,7 @@ import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:stylerstack/utils/constants.dart';
 import 'package:vibration/vibration.dart';
 import 'package:stylerstack/widgets/payment_processing_dialog.dart';
+import 'package:stylerstack/providers/notification_provider.dart';
 
 class PaymentUIService {
   static VoidCallback? paymentTimeoutCallback;
@@ -10,6 +11,7 @@ class PaymentUIService {
   static const int maxRetryAttempts = 3;
 
   static Future<void> showProcessingDialog(BuildContext context, double amount) async {
+    NotificationProvider.resetFlag(context);
     await showDialog(
       context: context,
       barrierDismissible: false,
@@ -28,6 +30,7 @@ class PaymentUIService {
       double amount,
       Future<void> Function() onRetry,
       ) async {
+    NotificationProvider.resetFlag(context);
     if (retryAttempts >= maxRetryAttempts) {
       if (!context.mounted) return;
       await showDialog(

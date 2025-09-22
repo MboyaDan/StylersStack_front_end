@@ -123,6 +123,21 @@ class StyleStackApp extends StatelessWidget {
           (previous ?? FavoriteProvider(service, box))..updateService(service),
         ),
 
+
+        /// Notification Provider
+        ChangeNotifierProxyProvider<ApiService, NotificationProvider>(
+          create: (context) {
+            final api = context.read<ApiService>();
+            final provider = NotificationProvider(api, globalNavigatorKey);
+            Future.microtask(()=>provider.initFCM());
+            return provider;
+          },
+          update: (_, api, previous) {
+            final provider = previous ?? NotificationProvider(api, globalNavigatorKey);
+            return provider;
+          },
+        ),
+
         /// Payment Provider
         ChangeNotifierProxyProvider<ApiService, PaymentProvider>(
           create: (context) => PaymentProvider(context.read<ApiService>()),
@@ -134,7 +149,8 @@ class StyleStackApp extends StatelessWidget {
           create: (context) => CartProvider(context.read<ApiService>()),
           update: (_, api, __) => CartProvider(api),
         ),
-//
+
+
         /// Address Provider
         ChangeNotifierProxyProvider2<AuthProvider, ApiService, AddressProvider>(
           create: (context) {
@@ -157,20 +173,7 @@ class StyleStackApp extends StatelessWidget {
           create: (context) => OrderProvider(context.read<ApiService>()),
           update: (_, api, previous) => previous!..updateApi(api),
         ),
-    /// Notification Provider
-    ChangeNotifierProxyProvider<ApiService, NotificationProvider>(
-      create: (context) {
-        final api = context.read<ApiService>();
-        final provider = NotificationProvider(api, globalNavigatorKey);
-        Future.microtask(()=>provider.initFCM());
-        return provider;
-        },
-      update: (_, api, previous) {
-        final provider = previous ?? NotificationProvider(api, globalNavigatorKey);
-        provider.initFCM();
-        return provider;
-    },
-    ),
+
 
         /// Connectivity Service
         Provider<ConnectivityService>(

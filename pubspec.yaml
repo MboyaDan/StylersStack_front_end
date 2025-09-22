@@ -73,6 +73,7 @@ dependencies:
   smooth_page_indicator: ^1.2.1
   shimmer_animation: ^2.2.2
   shimmer: ^3.0.0
+  share_plus: ^7.2.1
 
 
 dev_dependencies:

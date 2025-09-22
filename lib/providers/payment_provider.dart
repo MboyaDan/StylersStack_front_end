@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stylerstack/providers/Notification_provider.dart';
+import 'package:stylerstack/providers/notification_provider.dart';
 import 'package:stylerstack/services/payment_service.dart';
 import '../models/payment_model.dart';
 import '../services/api_service.dart';

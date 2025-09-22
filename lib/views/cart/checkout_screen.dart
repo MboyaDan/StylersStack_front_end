@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:stylerstack/main.dart';
-import 'package:stylerstack/providers/Notification_provider.dart';
+import 'package:stylerstack/providers/notification_provider.dart';
 import 'package:stylerstack/widgets/appsnackwidget.dart';
 import 'package:stylerstack/widgets/mpesa_input_widget.dart';
 import 'package:stylerstack/providers/cart_provider.dart';

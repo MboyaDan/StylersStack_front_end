@@ -29,6 +29,8 @@ class NotificationProvider with ChangeNotifier {
   bool _hasNavigatedToSuccess = false;
   final Set<String> _processedPaymentIds = {};
 
+  bool _intialized = false;
+
   bool get hasNavigatedToSuccess => _hasNavigatedToSuccess;
 
   void markNavigatedToSuccess() {
@@ -61,6 +63,8 @@ class NotificationProvider with ChangeNotifier {
 
 
   Future<void> initFCM() async {
+    if (_intialized) return;
+    _intialized = true;
     NotificationSettings settings = await _messaging.requestPermission();
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
@@ -137,6 +141,7 @@ class NotificationProvider with ChangeNotifier {
 
     // Prevent duplicate processing
     if (_processedPaymentIds.contains(paymentId)) {
+      resetNavigatedToSuccess();
       debugPrint("⚠️ Skipping duplicate FCM handling for paymentId: $paymentId");
       return;
     }

@@ -26,7 +26,7 @@ class CartService {
     int quantity = 1,
   }) async {
     try {
-      final Response response = await _apiService.postRequest('cart', {
+      final Response response = await _apiService.postRequest('/cart', {
         'product_id': productId,
         'quantity': quantity,
       });
@@ -44,7 +44,7 @@ class CartService {
     required String productId,
   }) async {
     try {
-      final Response response = await _apiService.deleteRequest('cart', data: {
+      final Response response = await _apiService.deleteRequest('/cart', data: {
         'product_id': productId,
       });
 
