@@ -1,111 +1,89 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:stylerstack/providers/product_provider.dart';
+import '../models/product_model.dart';
+import '../providers/product_provider.dart';
+import 'flash_sale_banner.dart';
+import 'product_card.dart';
 
 class FlashSaleGridWidget extends StatelessWidget {
   const FlashSaleGridWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final flashSaleItems = context.watch<ProductProvider>().flashSaleProducts;
+    final List<ProductModel> flashSaleItems =
+        context.watch<ProductProvider>().flashSaleProducts;
 
-    return GridView.builder(
-      itemCount: flashSaleItems.length,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.7,
-        crossAxisSpacing: 10,
-        mainAxisSpacing: 10,
-      ),
-      itemBuilder: (context, index) {
-        final product = flashSaleItems[index];
-        final discountedPrice = product.price - (product.price * (product.discount ?? 0) / 100);
+    if (flashSaleItems.isEmpty) {
+      return const Center(
+        child: Text(
+          "🚀 No flash sale products right now",
+          style: TextStyle(color: Colors.black54),
+        ),
+      );
+    }
 
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5)],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Flash Sale Countdown Banner
+        FlashSaleBanner(endTime: DateTime.now().add(const Duration(hours: 5))),
+
+        const SizedBox(height: 12),
+
+        //  Grid of clickable ProductCards
+        GridView.builder(
+          itemCount: flashSaleItems.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.68,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Product image
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: product.images.isNotEmpty
-                      ? Image.network(
-                    product.images.first,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  )
-                      : Container(
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.image, size: 80),
-                  ),
-                ),
-              ),
+          itemBuilder: (context, index) {
+            final product = flashSaleItems[index];
 
-              // Product name
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6),
-                child: Text(
-                  product.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
+            return Stack(
+              children: [
+                // Reuse ProductCard for consistency
+              ProductCard(
+              product: product,
+              onTap: () async {
+                await context.push('/product-details', extra: product);
+              },
+            ),
 
-              // Prices and discount
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Row(
-                  children: [
-                    Text(
-                      "KES ${discountedPrice.toStringAsFixed(0)}",
-                      style: const TextStyle(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
+                //Discount badge overlay (only for flash sale)
+                if ((product.discount ?? 0) > 0)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    if ((product.discount ?? 0) > 0)
-                      Text(
-                        "KES ${product.price.toStringAsFixed(0)}",
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        "-${product.discount!.toInt()}%",
                         style: const TextStyle(
-                          decoration: TextDecoration.lineThrough,
-                          color: Colors.grey,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
                       ),
-                  ],
-                ),
-              ),
-
-              // Optional: Discount badge
-              if ((product.discount ?? 0) > 0)
-                Padding(
-                  padding: const EdgeInsets.only(left: 8.0, top: 4, bottom: 8),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      "-${product.discount!.toInt()}%",
-                      style: const TextStyle(color: Colors.white, fontSize: 12),
                     ),
                   ),
-                ),
-            ],
-          ),
-        );
-      },
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 }
