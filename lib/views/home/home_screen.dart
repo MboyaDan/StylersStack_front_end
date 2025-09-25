@@ -27,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final List<Widget> _screens = [
       const HomeMainScreen(),
-      ReelsScreen(products: productProvider.products), // 👈 fixed
+      ReelsScreen(products: productProvider.products),
       const MyCartScreen(),
       const FavoriteScreen(),
       const ProfileScreen(),
@@ -38,9 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
-        selectedItemColor: AppColors.primary,
+        selectedItemColor: AppColors.brown,
         unselectedItemColor: Colors.grey,
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
         onTap: (index) => setState(() => _currentIndex = index),
         items: [
           const BottomNavigationBarItem(

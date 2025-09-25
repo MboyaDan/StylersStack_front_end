@@ -134,9 +134,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       appBar: AppBar(
         title: const Text('Checkout Details'),
         centerTitle: true,
-        backgroundColor: AppColors.primary,
+        backgroundColor: AppColors.brown,
       ),
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.background(context),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.padding),
@@ -185,19 +185,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    icon: const Icon(Icons.lock_outline),
+                    icon: Icon(Icons.lock_outline,
+                      color: AppColors.text(context),
+                    ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accent,
-                      foregroundColor: AppColors.text,
+                      backgroundColor: AppColors.button2,
                       minimumSize: const Size.fromHeight(50),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
                       ),
                     ),
                     onPressed: _handlePayment,
-                    label: const Text(
+                    label:  Text(
                       'Proceed to Payment',
                       style: TextStyle(
+                        color:AppColors.text(context),
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -229,7 +232,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
-              Icon(icon, color: AppColors.primary),
+              Icon(icon,
+                  color: AppColors.text(context),
+              ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -252,9 +257,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
                           additionalInfo,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: AppColors.primary,
+                            color: AppColors.text(context),
                             fontWeight: FontWeight.w600,
                           ),
                         ),

@@ -27,7 +27,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     final orderProvider = context.watch<OrderProvider>();
 
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
+      backgroundColor: AppColors.scaffoldBackground(context),
       appBar: AppBar(
         title: const Text("My Orders"),
         centerTitle: true,
@@ -56,9 +56,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.button2,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: AppColors.grey),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,8 +98,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     Text(order.status.toUpperCase()),
                     backgroundColor:
                     _statusColor(order.status),
-                    labelStyle: const TextStyle(
-                        color: Colors.white),
+                    labelStyle:  TextStyle(
+                        color: AppColors.text(context),),
                   ),
 
                   const SizedBox(height: 8),
@@ -128,7 +128,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
       case "cancelled":
         return Colors.red;
       default:
-        return AppColors.background;
+        return AppColors.background(context);
     }
   }
 }

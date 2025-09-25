@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:stylerstack/providers/payment_provider.dart';
-import 'package:stylerstack/utils/constants.dart'; // For consistent colors & spacing
-
+import 'package:stylerstack/utils/constants.dart';
 Future<bool> showMpesaPhoneInputModal(BuildContext context) async {
   final paymentProvider = context.read<PaymentProvider>();
   final TextEditingController controller = TextEditingController(
-    text: (paymentProvider.phoneNumber?.length == 9) ? paymentProvider.phoneNumber : '',
+    text: (paymentProvider.phoneNumber?.length == 9)
+        ? paymentProvider.phoneNumber
+        : '',
   );
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   final result = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: Colors.white,
+    backgroundColor: AppColors.background(context),
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
@@ -31,14 +32,15 @@ Future<bool> showMpesaPhoneInputModal(BuildContext context) async {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.mobile_friendly, size: 48, color: AppColors.primary),
+                const Icon(Icons.mobile_friendly,
+                    size: 48, color: AppColors.mpesaRed,),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   "Enter M-Pesa Number",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.text,
+                    color: AppColors.text(context),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -60,23 +62,25 @@ Future<bool> showMpesaPhoneInputModal(BuildContext context) async {
                   style: const TextStyle(letterSpacing: 1.0),
                   decoration: InputDecoration(
                     labelText: 'Safaricom Phone Number',
-                    labelStyle: const TextStyle(color: AppColors.text),
+                    labelStyle: TextStyle(color: AppColors.text(context)),
                     prefixText: '+254 ',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: AppColors.primary),
+                      borderSide: BorderSide(color: AppColors.primary(context)),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     filled: true,
-                    fillColor: AppColors.background.withAlpha(13),
+                    fillColor:
+                    AppColors.background(context).withAlpha(13),
                   ),
                   validator: (value) {
                     final trimmed = value?.trim() ?? '';
                     if (trimmed.isEmpty) {
                       return 'Phone number is required';
-                    } else if (trimmed.length != 9 || !RegExp(r'^[17]\d{8}$').hasMatch(trimmed)) {
+                    } else if (trimmed.length != 9 ||
+                        !RegExp(r'^[17]\d{8}$').hasMatch(trimmed)) {
                       return 'Enter a valid Safaricom number (e.g. 712345678)';
                     }
                     return null;
@@ -91,7 +95,8 @@ Future<bool> showMpesaPhoneInputModal(BuildContext context) async {
                       child: TextButton(
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.grey[700],
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding:
+                          const EdgeInsets.symmetric(vertical: 14),
                         ),
                         onPressed: () => Navigator.pop(ctx, false),
                         child: const Text('Cancel'),
@@ -101,22 +106,24 @@ Future<bool> showMpesaPhoneInputModal(BuildContext context) async {
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          backgroundColor: AppColors.mpesaGreen,
+                          padding:
+                          const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         onPressed: () {
                           if (formKey.currentState!.validate()) {
-                            paymentProvider.setPhoneNumber(controller.text.trim());
+                            paymentProvider
+                                .setPhoneNumber(controller.text.trim());
                             Navigator.pop(ctx, true);
                           }
                         },
                         child: const Text(
                           'Continue',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

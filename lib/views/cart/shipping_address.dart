@@ -127,13 +127,13 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
                   : ElevatedButton(
                 onPressed: _saveAddress,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
+                  backgroundColor: AppColors.accent(context),
                   minimumSize: const Size.fromHeight(50),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text("Save Address",
+                child:Text("Save Address",
                     style: TextStyle(
-                        color: AppColors.text,
+                        color: AppColors.text(context),
                         fontSize: 16,
                         fontWeight: FontWeight.bold)),
               ),

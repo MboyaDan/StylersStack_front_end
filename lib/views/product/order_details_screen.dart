@@ -15,7 +15,7 @@ class OrderDetailsScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
+      backgroundColor: AppColors.scaffoldBackground(context),
       appBar: AppBar(
         title: const Text('Order Details'),
         centerTitle: true,
@@ -41,11 +41,10 @@ class OrderDetailsScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   children: [
                     // Order info container
-                    // Order info container
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: AppColors.button2,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: theme.dividerColor.withValues(alpha: 0.3),
@@ -84,8 +83,8 @@ class OrderDetailsScreen extends StatelessWidget {
                           )
                               : Chip(
                             label: Text(order.status.toUpperCase()),
-                            backgroundColor: _statusColor(order.status),
-                            labelStyle: const TextStyle(color: Colors.white),
+                            backgroundColor: _statusColor(context,order.status),
+                            labelStyle: const TextStyle(color: Colors.black),
                           ),
                         ],
                       ),
@@ -124,7 +123,7 @@ class OrderDetailsScreen extends StatelessWidget {
                               ),
                               child: const Icon(
                                 Icons.shopping_bag_outlined,
-                                color: Colors.blue,
+                                color: Colors.brown,
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -202,7 +201,7 @@ class OrderDetailsScreen extends StatelessWidget {
     );
   }
 
-  Color _statusColor(String status) {
+  Color _statusColor(BuildContext context, String status) {
     switch (status.toLowerCase()) {
       case "delivered":
         return Colors.green;
@@ -211,9 +210,10 @@ class OrderDetailsScreen extends StatelessWidget {
       case "cancelled":
         return Colors.red;
       default:
-        return AppColors.background;
+        return AppColors.background(context);
     }
   }
+
 
   Widget _buildError(String message) {
     return Center(

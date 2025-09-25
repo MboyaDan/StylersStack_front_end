@@ -12,7 +12,7 @@ class AppSnackbar {
         VoidCallback? onAction,
         Duration duration = const Duration(seconds: 3),
       }) {
-    final backgroundColor = _getBackgroundColor(type);
+    final backgroundColor = _getBackgroundColor(context, type);
     final icon = _getIcon(type);
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -28,7 +28,10 @@ class AppSnackbar {
             Expanded(
               child: Text(
                 message,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],
@@ -44,7 +47,7 @@ class AppSnackbar {
     );
   }
 
-  static Color _getBackgroundColor(SnackbarType type) {
+  static Color _getBackgroundColor(BuildContext context, SnackbarType type) {
     switch (type) {
       case SnackbarType.success:
         return Colors.green[700]!;
@@ -54,7 +57,7 @@ class AppSnackbar {
         return Colors.orange[800]!;
       case SnackbarType.info:
       default:
-        return AppColors.primary;
+        return AppColors.primary(context); // ✅ requires context
     }
   }
 

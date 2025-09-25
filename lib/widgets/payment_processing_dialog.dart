@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stylerstack/utils/constants.dart'; // Assuming you have AppColors
-
+import 'package:stylerstack/utils/constants.dart';
 class PaymentProcessingDialog extends StatelessWidget {
   final double amount;
 

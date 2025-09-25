@@ -45,9 +45,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final currentAddress = addressProvider.address?.address;
 
     return Scaffold(
+      backgroundColor: AppColors.scaffoldBackground(context),
       appBar: AppBar(
         title: const Text('My Profile'),
         centerTitle: true,
+        backgroundColor: AppColors.background(context),
       ),
       body: _isSigningOut
           ? const Center(child: CircularProgressIndicator())
@@ -55,26 +57,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           // ===== Profile Header =====
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20), // Using your static constant
+            padding: const EdgeInsets.symmetric(
+                vertical: 30, horizontal: 20),
             child: Column(
               children: [
                 CircleAvatar(
                   radius: 45,
-                  backgroundColor:AppColors.background,
+                  backgroundColor: AppColors.background(context),
                   child: Text(
                     displayName[0].toUpperCase(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 36,
-                      color: AppColors.text,
+                      color: AppColors.text(context),
                     ),
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   displayName,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -89,23 +93,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 // Track My Orders button
                 ElevatedButton.icon(
                   onPressed: () => context.push('/orders'),
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.local_shipping_outlined,
-                    color: AppColors.text,
+                    color: AppColors.text(context),
                     size: 26,
                   ),
-
-                  label: const Text(
+                  label: Text(
                     "Track My Orders",
                     style: TextStyle(
-                        color: AppColors.text,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600
+                      color: AppColors.text(context),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 48),
-                    backgroundColor: AppColors.background,
+                    backgroundColor: AppColors.button2,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -114,7 +117,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
-
 
           const SizedBox(height: 20),
 
@@ -125,9 +127,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             subtitle: Text(
               currentAddress ?? 'No address saved yet. Add one now!',
               style: TextStyle(
-                color: currentAddress != null ? Colors.black87 : Colors.red,
-                fontStyle:
-                currentAddress == null ? FontStyle.italic : FontStyle.normal,
+                color: currentAddress != null
+                    ? Colors.black87
+                    : Colors.red,
+                fontStyle: currentAddress == null
+                    ? FontStyle.italic
+                    : FontStyle.normal,
               ),
             ),
             trailing: const Icon(Icons.chevron_right),

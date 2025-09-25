@@ -31,7 +31,7 @@ class PaymentMethodScreen extends StatelessWidget {
   Widget _buildPaymentOption(BuildContext context, String method, IconData icon, Function(String) onSelect) {
     return Card(
       child: ListTile(
-        leading: Icon(icon, color: AppColors.primary),
+        leading: Icon(icon, color: AppColors.text(context)),
         title: Text(method),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => onSelect(method),

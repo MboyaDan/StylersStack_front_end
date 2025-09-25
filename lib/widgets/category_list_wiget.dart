@@ -21,13 +21,13 @@ class CategoryListWidget extends StatelessWidget {
           child: Column(
             children: [
               CircleAvatar(
-                backgroundColor: AppColors.background,
-                child: Icon(category.icon, color: AppColors.primary),
+                backgroundColor: AppColors.background(context),
+                child: Icon(category.icon, color: AppColors.brown),
               ),
               const SizedBox(height: 4),
               Text(category.label,
-                  style: const TextStyle(
-                    color: AppColors.text,
+                  style:TextStyle(
+                    color: AppColors.text(context),
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),),

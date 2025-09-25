@@ -51,11 +51,17 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.shopping_bag_outlined, size: 36, color: AppColors.primary),
+              ///remove const, use runtime theme-based color
+              const Icon(Icons.shopping_bag_outlined,
+                  size: 36, color: AppColors.brown),
+
               const SizedBox(height: 12),
               Text(
                 'Add this item to your cart?',
-                style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                style: Theme.of(sheetContext)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 20),
               Row(
@@ -66,30 +72,36 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                         final cart = sheetContext.read<CartProvider>();
                         CartItemModel? existing;
                         try {
-                          existing = cart.cartItems.firstWhere((e) => e.productId == product.id);
+                          existing = cart.cartItems
+                              .firstWhere((e) => e.productId == product.id);
                         } catch (_) {
                           existing = null;
                         }
 
                         if (existing != null) {
-                          cart.updateCartItem(product.id, existing.quantity + 1);
+                          cart.updateCartItem(
+                              product.id, existing.quantity + 1);
                         } else {
                           cart.addToCart(
                             productId: product.id,
                             productName: product.name,
                             productPrice: product.price,
-                            productImageUrl: product.images.isNotEmpty ? product.images.first : "",
+                            productImageUrl: product.images.isNotEmpty
+                                ? product.images.first
+                                : "",
                           );
                         }
 
                         Navigator.pop(sheetContext, true);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: AppColors.button2,
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text("Yes, Add to Cart", style: TextStyle(color: Colors.white)),
+                      child: const Text("Yes, Add to Cart",
+                          style: TextStyle(color: Colors.black)),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -98,9 +110,11 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                       onPressed: () => Navigator.pop(sheetContext, false),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text("Cancel"),
+                      child: const Text("Cancel"
+                          , style: TextStyle(color: Colors.black),),
                     ),
                   ),
                 ],
@@ -129,9 +143,10 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
       backgroundColor: const Color(0xFFF9F9F9),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.background(context), //
         iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text('Product Details', style: TextStyle(color: Colors.black45)),
+        title: const Text('Product Details',
+            style: TextStyle(color: Colors.black45)),
       ),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.only(bottom: 16),
@@ -142,14 +157,16 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: AppColors.background,
+                backgroundColor: AppColors.button2, //  fixed
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
               onPressed: _showAddToCartSheet,
-              icon: const Icon(Icons.shopping_bag, color: AppColors.text),
-              label: const Text('Add to Cart', style: TextStyle(color: AppColors.text)),
+              icon: Icon(Icons.shopping_bag,
+                  color: AppColors.text(context)), //
+              label: Text('Add to Cart',
+                  style: TextStyle(color: AppColors.text(context)),),
             ),
           ),
         ),
@@ -170,7 +187,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                         height: size.height * 0.4,
                         child: product.images.isEmpty
                             ? const Center(
-                          child: Icon(Icons.image_not_supported, size: 80, color: Colors.grey),
+                          child: Icon(Icons.image_not_supported,
+                              size: 80, color: Colors.grey,),
                         )
                             : PageView.builder(
                           controller: _pageController,
@@ -184,7 +202,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                                   product.images[index],
                                   fit: BoxFit.cover,
                                   width: double.infinity,
-                                  errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 80),
+                                  errorBuilder: (_, __, ___) =>
+                                  const Icon(Icons.broken_image,
+                                      size: 80,),
                                 ),
                               ),
                             );
@@ -199,7 +219,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                           effect: const ExpandingDotsEffect(
                             dotHeight: 8,
                             dotWidth: 8,
-                            activeDotColor: AppColors.primary,
+                            activeDotColor: AppColors.button, //
                             dotColor: Colors.grey,
                           ),
                         ),
@@ -227,13 +247,15 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                         children: [
                           RatingBarIndicator(
                             rating: product.rating.toDouble(),
-                            itemBuilder: (context, index) =>
-                            const Icon(Icons.star, color: Colors.amber),
+                            itemBuilder: (context, index) => const Icon(
+                                Icons.star,
+                                color: Colors.amber),
                             itemCount: 5,
                             itemSize: 20,
                           ),
                           const SizedBox(width: 8),
-                          Text('${product.rating}', style: TextStyle(color: Colors.grey[700])),
+                          Text('${product.rating}',
+                              style: TextStyle(color: Colors.grey[700])),
                           const Spacer(),
                           Text(
                             'Ksh${product.price.toStringAsFixed(2)}',
@@ -247,7 +269,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                       const SizedBox(height: 12),
                       Text(
                         product.description,
-                        style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey[800]),
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(color: Colors.grey[800]),
                       ),
                     ],
                   ),
@@ -270,10 +293,13 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                             return ChoiceChip(
                               label: Text(size),
                               selected: product.selectedSize == size,
-                              onSelected: (_) => setState(() => product.selectedSize = size),
-                              selectedColor: AppColors.primary,
+                              onSelected: (_) =>
+                                  setState(() => product.selectedSize = size),
+                              selectedColor: AppColors.button2,
                               labelStyle: TextStyle(
-                                color: product.selectedSize == size ? Colors.white : Colors.black,
+                                color: product.selectedSize == size
+                                    ? Colors.white
+                                    : Colors.black,
                               ),
                               backgroundColor: Colors.grey[200],
                             );
@@ -292,19 +318,23 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Select Color", style: theme.textTheme.titleMedium),
+                        Text("Select Color",
+                            style: theme.textTheme.titleMedium),
                         const SizedBox(height: 8),
                         Wrap(
                           spacing: 10,
                           children: product.colors.map((color) {
-                            final isSelected = product.selectedColor == color;
+                            final isSelected =
+                                product.selectedColor == color;
                             return GestureDetector(
-                              onTap: () => setState(() => product.selectedColor = color),
+                              onTap: () =>
+                                  setState(() => product.selectedColor = color),
                               child: CircleAvatar(
                                 backgroundColor: color,
                                 radius: 18,
                                 child: isSelected
-                                    ? const Icon(Icons.check, color: Colors.white)
+                                    ? Icon(Icons.check,
+                                    color: AppColors.text(context),)
                                     : null,
                               ),
                             );

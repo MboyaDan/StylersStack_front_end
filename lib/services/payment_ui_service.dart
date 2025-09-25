@@ -110,7 +110,7 @@ class PaymentUIService {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: AppColors.button2,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -121,7 +121,12 @@ class PaymentUIService {
               Navigator.of(ctx).pop();
               await onRetry();
             },
-            child: const Text('Retry Payment'),
+            child:  Text('Retry Payment',
+              style: TextStyle(
+                color: AppColors.text(context),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),

@@ -44,8 +44,8 @@ class MyCartScreen extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: const BoxDecoration(
-        color: AppColors.background,
+      decoration:  BoxDecoration(
+        color: AppColors.background(context),
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 12)],
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -80,10 +80,10 @@ class MyCartScreen extends StatelessWidget {
                   provider.applyPromoCode(promoController.text);
                   FocusScope.of(context).unfocus();
                 },
-                child: const Text(
+                child:  Text(
                   "Apply",
                   style: TextStyle(
-                    color: AppColors.primary,
+                    color: AppColors.text(context),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -107,18 +107,18 @@ class MyCartScreen extends StatelessWidget {
               ElevatedButton(
                 onPressed: () => context.push('/checkout'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
+                  backgroundColor: AppColors.button2,
                   elevation: 2,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
                 ),
-                child: const Text(
+                child: Text(
                   "Checkout",
                   style: TextStyle(
                     fontSize: 16,
-                    color: AppColors.text,
+                    color: AppColors.text(context),
                     fontWeight: FontWeight.bold,
                   ),
                 ),

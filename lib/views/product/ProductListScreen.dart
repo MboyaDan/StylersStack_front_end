@@ -19,7 +19,7 @@ class ProductListScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.background(context),
         title: const Text("All Products",
           style: TextStyle(color: Colors.black45),),
         leading: IconButton(

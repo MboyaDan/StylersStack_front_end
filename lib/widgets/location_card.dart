@@ -49,16 +49,17 @@ class LocationCard extends StatelessWidget {
 
     return Row(
       children: [
-        const Icon(Icons.location_on, color: AppColors.primary),
+        const Icon(Icons.location_on,
+            color: AppColors.brown,),
         const SizedBox(width: 4),
         Flexible(
           child: Text(
             location.address,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 14,
-              color: AppColors.text,
+              color: AppColors.text(context),
             ),
           ),
         ),

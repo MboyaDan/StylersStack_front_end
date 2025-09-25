@@ -12,7 +12,7 @@ class HomeMainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F6F6),
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -26,6 +26,7 @@ class HomeMainScreen extends StatelessWidget {
               const SearchBarWidget(),
 
               const SizedBox(height: 25),
+
               // Banner Section
               Container(
                 height: 200,
@@ -49,7 +50,7 @@ class HomeMainScreen extends StatelessWidget {
                           "New Collection",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
+                            color: AppColors.brown,
                             fontSize: 16,
                           ),
                         ),
@@ -66,10 +67,11 @@ class HomeMainScreen extends StatelessWidget {
                         ElevatedButton(
                           onPressed: () => context.go('/products'),
                           style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
                             shadowColor: Colors.transparent,
-                            backgroundColor: AppColors.background,
-                            foregroundColor: AppColors.primary,
+                            backgroundColor: AppColors.background(context), //
+                            foregroundColor: AppColors.brown,   //
                             textStyle: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,

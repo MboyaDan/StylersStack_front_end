@@ -37,8 +37,9 @@ class _CartItemCardState extends State<CartItemCard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'
-                ,style: TextStyle(color: AppColors.text),
+            child:  Text('Cancel'
+                ,style: TextStyle(color: AppColors.text(context),
+              ),
             ),
           ),
           ElevatedButton.icon(
@@ -232,7 +233,7 @@ class _CartItemCardState extends State<CartItemCard> {
       child: Container(
         decoration: BoxDecoration(
           color: onTap != null
-              ? AppColors.accent.withAlpha(25)
+              ? AppColors.accent(context).withAlpha(25)
               : Colors.grey.shade300,
           borderRadius: BorderRadius.circular(8),
         ),
@@ -240,7 +241,7 @@ class _CartItemCardState extends State<CartItemCard> {
         child: Icon(
           icon,
           size: 20,
-          color: onTap != null ? AppColors.primary : Colors.grey,
+          color: onTap != null ? AppColors.primary(context) : Colors.grey,
         ),
       ),
     );

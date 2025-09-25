@@ -16,7 +16,7 @@ class ThemeProvider extends ChangeNotifier {
     notifyListeners(); // Notify after loading
   }
 
-  //toggle value//readdata
+  //toggle value//read data
 
   Future<void> toggleTheme() async {
     _isDarkMode = !_isDarkMode;

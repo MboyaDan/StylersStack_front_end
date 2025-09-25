@@ -39,9 +39,11 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
           Container(
             height: size.height,
             width: size.width,
-            decoration: const BoxDecoration(
+            decoration:  const BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColors.primary, AppColors.background],
+                colors: [
+                  AppColors.brown,
+                  AppColors.button2],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -59,9 +61,10 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(AppSpacing.padding * 2),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.12),
+                        color: Colors.white.withValues(alpha: 0.12),
+
                         borderRadius: BorderRadius.circular(AppSpacing.borderRadius * 2),
-                        border: Border.all(color: Colors.white.withOpacity(0.25)),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -85,7 +88,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                           Text(
                             "Thank you for your purchase.\nYour order will be processed shortly.",
                             style: theme.textTheme.bodyLarge?.copyWith(
-                              color: Colors.white.withOpacity(0.85),
+                              color: Colors.white.withValues(alpha: 0.85),
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -93,7 +96,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               elevation: 4,
-                              backgroundColor: AppColors.accent,
+                              backgroundColor: AppColors.button,
                               minimumSize: const Size.fromHeight(50),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(AppSpacing.borderRadius),
@@ -102,12 +105,12 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
                             onPressed: () {
                               context.go('/');
                             },
-                            child: const Text(
+                            child:  Text(
                               "Continue Shopping",
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 16,
-                                color: AppColors.text,
+                                color: AppColors.text(context),
                               ),
                             ),
                           ),

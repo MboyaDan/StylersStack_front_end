@@ -60,12 +60,12 @@ class SearchBarInput extends StatelessWidget {
               height: 48,
               width: 48,
               decoration: BoxDecoration(
-                color: AppColors.background,
+                color: AppColors.background(context),
                 borderRadius: BorderRadius.circular(30),
                 border: Border.all(color: Colors.brown.shade200),
               ),
               child: IconButton(
-                icon: const Icon(Icons.filter_list, color: AppColors.primary),
+                icon:  Icon(Icons.filter_list, color: AppColors.primary(context)),
                 onPressed: onFilterTap,
               ),
             ),

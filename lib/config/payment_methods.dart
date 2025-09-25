@@ -8,7 +8,12 @@ class PaymentMethod {
 }
 
 const List<PaymentMethod> availablePaymentMethods = [
-  PaymentMethod(name: 'Credit Card', icon: Icons.credit_card),
-  PaymentMethod(name: 'mpesa', icon: Icons.account_balance_wallet),
+  PaymentMethod(name: 'Credit Card',
+      icon: Icons.credit_card
+
+  ),
+  PaymentMethod(name: 'Mpesa', icon: Icons.account_balance_wallet,
+
+  ),
   PaymentMethod(name: 'Cash on Delivery', icon: Icons.money),
 ];
