@@ -12,7 +12,7 @@ const List<PaymentMethod> availablePaymentMethods = [
       icon: Icons.credit_card
 
   ),
-  PaymentMethod(name: 'Mpesa', icon: Icons.account_balance_wallet,
+  PaymentMethod(name: 'mpesa', icon: Icons.account_balance_wallet,
 
   ),
   PaymentMethod(name: 'Cash on Delivery', icon: Icons.money),
