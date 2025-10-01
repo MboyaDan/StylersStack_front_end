@@ -91,7 +91,7 @@ screenshots
   </tr>
   <tr>
     <td align="center">Home Page</td>
-    <td align="center">Categories</td>
+    <td align="center">Cartscreen</td>
     <td align="center">Flash Sale</td>
     <td align="center">Checkout</td>
   </tr>
