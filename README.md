@@ -124,5 +124,4 @@ flutter pub get
 flutter run
 
 🔗 Related Repositories
-- [Backend (FastAPI)] → (https://github.com/MboyaDan/StylersStack_back_end)
-- [Frontend (FastAPI)](https://github.com/MboyaDan/StylersStack_front_end)
+- [Backend (FastAPI)](https://github.com/MboyaDan/StylersStack_back_end)
