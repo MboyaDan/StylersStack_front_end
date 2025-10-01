@@ -124,4 +124,4 @@ flutter pub get
 flutter run
 
 🔗 Related Repositories
-- [Fronte(Flutter App)](https://github.com/MboyaDan/StylersStack_back_end)
+- Backend (FastAPI) → (https://github.com/MboyaDan/StylersStack_back_end)
