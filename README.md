@@ -1,16 +1,127 @@
-# stylerstack
+# StylerStack – Frontend (Flutter)
 
-A new Flutter project.
+This app provides a seamless shopping experience with real-time payments, authentication, and push notifications.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## ✨ Features
 
-A few resources to get you started if this is your first Flutter project:
+### **Authentication**
+- Firebase Authentication (Email/Password, Google)
+- Secure user sessions across app restarts
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### **Payments**
+- Mpesa Daraja API integration
+- Cash on Delivery
+- Real-time payment confirmation via Firebase Cloud Messaging (FCM) (no polling)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### **State Management**
+- Provider for app-wide state  
+(Currently exploring Riverpod for advanced state patterns)
+
+### **UI/UX**
+- Built with Material UI principles for consistency  
+- Clean, responsive layouts  
+
+### **E-commerce Features**
+- Product browsing with categories  
+- Cart & Favorites management  
+- Address management  
+- Checkout & order history  
+- Reels section to scroll across products (discounted and flash sale)  
+
+### **Notifications**
+- Push notifications (payment status, order updates) via FCM  
+
+### **CI/CD**
+- Codemagic for automated builds & debugging  
+
+---
+
+## 🛠️ Tech Stack
+- **Flutter** – Mobile app framework  
+- **Hive & SharedPreferences** – App cache  
+- **Provider** – State management  
+- **Firebase Auth** – User authentication & role-based access  
+- **Firebase Cloud Messaging (FCM)** – Real-time payment & order notifications  
+- **Dio / HTTP** – API client (connects to FastAPI backend)  
+- **Codemagic** – Build automation and debugging  
+- **Material UI Design** – Consistent and modern look & feel  
+- **Dependency Injection**  
+
+✅ Clean coding architecture **MVVM (Model–View–ViewModel)**  
+
+---
+
+## 🔑 Environment Setup
+The app requires Firebase setup.  
+
+1. Add your `google-services.json` (Android) and `GoogleService-Info.plist` (iOS).  
+2. Update the `.env` or constants file with your backend URL:  
+   ```dart
+   const String baseUrl = "https://your-backend-url.onrender.com";
+screenshots
+## 📸 Screenshots (Admin Dashboard)
+
+### Dashboard
+![Dashboard Screenshot](https://github.com/MboyaDan/StylersStack_back_end/blob/main/docs/admin_dashbord.png)
+
+### Orders
+![Orders Screen](https://github.com/MboyaDan/StylersStack_back_end/blob/main/docs/order_screen.png)
+
+### Add New Product
+![Add Product Screen](https://github.com/MboyaDan/StylersStack_back_end/blob/main/docs/add_new_product_screen.png)
+
+### Payments
+![Payment Screen](https://github.com/MboyaDan/StylersStack_back_end/blob/main/docs/payment_screen.png)
+
+### Products
+![Product Screen](https://github.com/MboyaDan/StylersStack_back_end/blob/main/docs/product_screen.png)
+
+## 📱 Screenshots
+
+## 📱 Screenshots
+
+<table>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/MboyaDan/StylersStack_front_end/main/docs/homepage.png" alt="Home" width="250"/></td>
+    <td><img src="https://raw.githubusercontent.com/MboyaDan/StylersStack_front_end/main/docs/catscreen.png" alt="Categories" width="250"/></td>
+    <td><img src="https://raw.githubusercontent.com/MboyaDan/StylersStack_front_end/main/docs/flashsale.png" alt="Flash Sale" width="250"/></td>
+    <td><img src="https://raw.githubusercontent.com/MboyaDan/StylersStack_front_end/main/docs/checkoutscreen.png" alt="Checkout" width="250"/></td>
+  </tr>
+  <tr>
+    <td align="center">Home Page</td>
+    <td align="center">Categories</td>
+    <td align="center">Flash Sale</td>
+    <td align="center">Checkout</td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/MboyaDan/StylersStack_front_end/main/docs/orderscreen.png" alt="Orders" width="250"/></td>
+    <td><img src="https://raw.githubusercontent.com/MboyaDan/StylersStack_front_end/main/docs/oderdetails.png" alt="Order Details" width="250"/></td>
+    <td><img src="https://raw.githubusercontent.com/MboyaDan/StylersStack_front_end/main/docs/payment_screen.png" alt="Payment" width="250"/></td>
+    <td><img src="https://raw.githubusercontent.com/MboyaDan/StylersStack_front_end/main/docs/payment_success.png" alt="Success" width="250"/></td>
+  </tr>
+  <tr>
+    <td align="center">Order Screen</td>
+    <td align="center">Order Details</td>
+    <td align="center">Payment</td>
+    <td align="center">Payment Success</td>
+  </tr>
+</table>
+
+
+# clone the repo
+git clone https://github.com/MboyaDan/StylersStack_front_end
+cd StylerStack_front_end
+
+# install dependencies
+flutter pub get
+
+# run the app
+flutter run
+
+🔗 Related Repositories
+- [Fronte(Flutter App)](https://github.com/MboyaDan/StylersStack_back_end)
