@@ -88,12 +88,21 @@ screenshots
     <td><img src="https://raw.githubusercontent.com/MboyaDan/StylersStack_front_end/main/docs/catscreen.png" alt="Categories" width="250"/></td>
     <td><img src="https://raw.githubusercontent.com/MboyaDan/StylersStack_front_end/main/docs/flashsale.png" alt="Flash Sale" width="250"/></td>
     <td><img src="https://raw.githubusercontent.com/MboyaDan/StylersStack_front_end/main/docs/checkoutscreen.png" alt="Checkout" width="250"/></td>
-  </tr>
+     <td><img src="https://github.com/MboyaDan/StylersStack_front_end/blob/main/docs/paymentprogress.png" alt="PaymentProgress" width="250"/></td>
+     <td><img src="https://github.com/MboyaDan/StylersStack_front_end/blob/main/docs/login_screen.png" alt="LoginScreen" width="250"/></td>
+     <td><img src="https://github.com/MboyaDan/StylersStack_front_end/blob/main/docs/product_screen.png" alt="ProductScreen" width="250"/></td>
+     <td><img src="https://github.com/MboyaDan/StylersStack_front_end/blob/main/docs/profile.png" alt="ProfileScreen" width="250"/></td>
+ </tr>
   <tr>
-    <td align="center">Home Page</td>
+    <td align="center">HomeScreen</td>
     <td align="center">Cartscreen</td>
     <td align="center">Flash Sale</td>
     <td align="center">Checkout</td>
+    <td align="center">PaymentProgress</td>
+    <td align="center">LoginScreen</td>
+    <td align="center">ProductScreen</td>   
+   <td align="center">ProfileScreen</td>     
+
   </tr>
 </table>
 
