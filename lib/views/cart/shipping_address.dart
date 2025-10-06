@@ -127,7 +127,7 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
                   : ElevatedButton(
                 onPressed: _saveAddress,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent(context),
+                  backgroundColor: AppColors.button2,
                   minimumSize: const Size.fromHeight(50),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
@@ -135,7 +135,7 @@ class _ShippingAddressScreenState extends State<ShippingAddressScreen> {
                     style: TextStyle(
                         color: AppColors.text(context),
                         fontSize: 16,
-                        fontWeight: FontWeight.bold)),
+                        fontWeight: FontWeight.bold),),
               ),
             ],
           ),
