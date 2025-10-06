@@ -96,10 +96,11 @@ screenshots
   </tr>
 
   <tr>
+   <td><img src="https://github.com/MboyaDan/StylersStack_front_end/blob/main/docs/shippingAddressScreen.png" alt="ShippingAddress" width="250"/></td>
     <td><img src="https://github.com/MboyaDan/StylersStack_front_end/blob/main/docs/login_screen.png" alt="LoginScreen" width="250"/></td>
     <td><img src="https://github.com/MboyaDan/StylersStack_front_end/blob/main/docs/product_screen.png" alt="ProductScreen" width="250"/></td>
     <td><img src="https://github.com/MboyaDan/StylersStack_front_end/blob/main/docs/profile.png" alt="ProfileScreen" width="250"/></td>
-   <td><img src=" https://github.com/MboyaDan/StylersStack_front_end/blob/main/docs/shippingAddressScreen.png" alt="ShippingAddress" width="250"/></td>
+   
   </tr>
   
   <tr>
