@@ -96,16 +96,18 @@ screenshots
   </tr>
 
   <tr>
-    <td><img src="https://github.com/MboyaDan/StylersStack_front_end/blob/main/docs/paymentprogress.png" alt="PaymentProgress" width="250"/></td>
     <td><img src="https://github.com/MboyaDan/StylersStack_front_end/blob/main/docs/login_screen.png" alt="LoginScreen" width="250"/></td>
     <td><img src="https://github.com/MboyaDan/StylersStack_front_end/blob/main/docs/product_screen.png" alt="ProductScreen" width="250"/></td>
     <td><img src="https://github.com/MboyaDan/StylersStack_front_end/blob/main/docs/profile.png" alt="ProfileScreen" width="250"/></td>
+   <td><img src=" https://github.com/MboyaDan/StylersStack_front_end/blob/main/docs/shippingAddressScreen.png" alt="ShippingAddress" width="250"/></td>
   </tr>
+  
   <tr>
-    <td align="center">PaymentProgress</td>
+    <td align="center">ShippingAddress</td>
     <td align="center">LoginScreen</td>
     <td align="center">ProductScreen</td>   
-    <td align="center">ProfileScreen</td>     
+    <td align="center">ProfileScreen</td>
+     
   </tr>
 </table>
 
@@ -117,12 +119,14 @@ screenshots
     <td><img src="https://raw.githubusercontent.com/MboyaDan/StylersStack_front_end/main/docs/orderscreen.png" alt="Orders" width="250"/></td>
     <td><img src="https://raw.githubusercontent.com/MboyaDan/StylersStack_front_end/main/docs/oderdetails.png" alt="Order Details" width="250"/></td>
     <td><img src="https://raw.githubusercontent.com/MboyaDan/StylersStack_front_end/main/docs/payment_screen.png" alt="Payment" width="250"/></td>
+    <td><img src="https://github.com/MboyaDan/StylersStack_front_end/blob/main/docs/paymentprogress.png" alt="PaymentProgress" width="250"/></td>
     <td><img src="https://raw.githubusercontent.com/MboyaDan/StylersStack_front_end/main/docs/payment_success.png" alt="Success" width="250"/></td>
   </tr>
   <tr>
     <td align="center">Order Screen</td>
     <td align="center">Order Details</td>
     <td align="center">Payment</td>
+    <td align="center">PaymentProgress</td>
     <td align="center">Payment Success</td>
   </tr>
 </table>
